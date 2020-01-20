@@ -1,0 +1,263 @@
+// Моя C нейросеть некачественно обучается по сравнению с keras
+// нейросеть,график,matplotlib,Python
+Здравствуйте!Показываю код нейросети на Си,где она обучается на 170 рядов рандомного нормального распределения их 28 колонок,и выводит график посредством Python matplotlib и берет данные для обучения со скрипта имя которого я указываю в батнике, то что называется встраивание Python в C/C++ приложение.Потом укажу код keras и оба графика обучения на этих 170 рядах.Почему-то моя сеть показывает что некачественно обучается по сравнению с keras.Почему это может быть?Ведь код вроде верный?Также покажу графики как моя сеть и keras обучаются на логическом xor.Опять же
+график keras лучше(потому что еще смотрю на предыдущий график).
+Итак:
+[Cpp]
+// хедер henNN.h
+[Cpp]
+[Cpp]
+// хедер hedPy.h
+[/Cpp]
+[Cpp]
+// main.cpp
+[/Cpp]
+[Python]
+# <относительно exeшника> ./src/python/learn_many.py
+# Данные после обучения будут сравниватся с keras моделью с такими же параметрами
+[/Python]
+[Bash]
+rem runCpp.bat
+rem Запуск сети со скриптом
+start cmd /K cppneironetintegrpyth 0.01 20 learn_many
+[/Bash]
+Код kearas.
+[Python]
+# keras_nn.py
+[Python]
+График моей сети на многих рандомных рядах:
+
+График keras c аналогичной архитектурой на тех же рядах:
+
+График моей сети обучения на логическом Xor:
+
+График keras обучения на логическом Xor:
+
+Видно по графикам keras что он лучше обучается.Что может быть неправильным в коде моей сети (или в чем то другом)???
+// Для learn_many 
+// leaky_relu
+cppneironetintegrpyth.exe 0.07 10 learn_many
+get data xget data yget map nnmap_nn - 28
+map_nn - 10
+map_nn - 7
+1!hid 0.036832 
+cost -36.831676 
+hid 0.050824 
+cost -50.824245 
+hid 0.041592 
+cost -41.591698 
+hid 23.335844 
+cost 23.335844 
+hid 0.017983 
+cost -17.983383 
+hid 0.003571 
+cost -3.570841 
+hid 43.172676 
+cost 43.172676 
+hid 55.102043 
+cost 55.102043 
+hid 0.004107 
+cost -4.107466 
+hid 0.026997 
+cost -26.996714 
+hid 0.048056 
+cost -48.056221 
+make hidden madehid 1867.069092 
+cost 1867.069092 
+hid 1817.826538 
+cost 1817.826538 
+hid 1879.199951 
+cost 1879.199951 
+hid 1572.177734 
+cost 1572.177734 
+hid 1328.503052 
+cost 1328.503052 
+hid 2056.180176 
+cost 2056.180176 
+hid 1829.440308 
+cost 1829.440308 
+hid 1407.851318 
+cost 1407.851318 
+make hidden madehid 3804385.750000 
+cost 3804385.750000 
+hid 3804410.500000 
+cost 3804410.500000 
+hid 3804455.750000 
+cost 3804455.750000 
+hid 3804401.250000 
+cost 3804401.250000 
+hid 3804417.750000 
+cost 3804417.750000 
+hid 3804444.750000 
+cost 3804444.750000 
+hid 3804422.250000 
+cost 3804422.250000 
+hid 3804427.750000 
+cost 3804427.750000 
+hid 3804457.500000 
+cost 3804457.500000 
+hid 3804431.750000 
+cost 3804431.750000 
+hid 3804436.750000 
+cost 3804436.750000 
+make hidden madehid 2427694874624.000000 
+cost 2427694874624.000000 
+hid 2427655290880.000000 
+cost 2427655290880.000000 
+hid 2427737604096.000000 
+cost 2427737604096.000000 
+hid 2427644018688.000000 
+cost 2427644018688.000000 
+hid 2427734720512.000000 
+cost 2427734720512.000000 
+hid 2427662106624.000000 
+cost 2427662106624.000000 
+hid 2427697233920.000000 
+cost 2427697233920.000000 
+hid 2427618328576.000000 
+cost 2427618328576.000000 
+make hidden madehid 22863016652505520013312.000000 
+cost -22863016814635106598649856.000000 
+hid 22863016652505520013312.000000 
+cost -22863016814635106598649856.000000 
+hid 22863016652505520013312.000000 
+cost -22863016814635106598649856.000000 
+hid 22863016652505520013312.000000 
+cost -22863016814635106598649856.000000 
+hid 22863016652505520013312.000000 
+cost -22863016814635106598649856.000000 
+hid 22863016652505520013312.000000 
+cost -22863016814635106598649856.000000 
+hid 22863016652505520013312.000000 
+cost -22863016814635106598649856.000000 
+hid 22863016652505520013312.000000 
+cost -22863016814635106598649856.000000 
+hid 22863016652505520013312.000000 
+cost -22863016814635106598649856.000000 
+hid 22863016652505520013312.000000 
+cost -22863016814635106598649856.000000 
+hid 22863016652505520013312.000000 
+cost -22863016814635106598649856.000000 
+make hidden madehid inf 
+cost -inf 
+hid inf 
+cost -inf 
+hid inf 
+cost -inf 
+hid inf 
+cost -inf 
+hid inf 
+cost -inf 
+hid inf 
+cost -inf 
+hid inf 
+cost -inf 
+hid inf 
+cost -inf 
+make hidden madehid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+make hidden madehid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+make hidden madehid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+make hidden madehid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+make hidden madehid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+cost nan 
+hid nan 
+// Реализация leaky_relu 
+float relu(float x)
+{
+	if (x < 0)
+		return 0.001 * abs(x);
+	else
+		return x;
+}
+
+float derivateRelu(float x)
+{
+	if (x < 0)
+		return -0.001;
+	else
+		return 1;
+}
+// без if (x < 0)
+		return 0.001 * abs(x);
+	else
+		return x;
+abs тоже возрастает
+
