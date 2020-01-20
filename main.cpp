@@ -9,30 +9,17 @@
 #include <stdlib.h>
 #include <signal.h>
 
-typedef enum {
-	RELU,
-	RELU_DERIV,
-	SIGMOID,
-	SIGMOID_DERIV,
-	TRESHOLD_FUNC,
-	TRESHOLD_FUNC_DERIV,
-	LEAKY_RELU,
-	LEAKY_RELU_DERIV,
-	INIT_W_HE,
-	INIT_W_GLOROT,
-	DEBUG,
-} OPS;
 using namespace std;
 
 vector<int> epochs;
 vector<float>mse;
-float *vec;// C вектор из PyObject-а
-float *vec_train;
+float *vec; // C вектор из PyObject-а
+float *X;
 int rows, cols;
-float *vec_teacher;
+float *Y;
 float koef_to_predict;
 int rows_teach, cols_teach;
-int debug;
+
 
 /* Исключения, проблемы с памятью
 int memento()
@@ -51,32 +38,26 @@ void posix_death_signal(int signum)
 using namespace std;
 //------------------Basic NeiroNet Structures--------------------
 
-typedef struct {
-	nnLay *list;
-	int inputNeurons; // количество выходных нейронов
-	int outputNeurons; // количество входных нейронов
-	int nlCount; // количество слоев
-	float *inputs;
-	float *targets;
-	float lr; // коэффициент обучения
-} whole_NN_params;
+
 whole_NN_params * NN;
 //------------------------------------------------------------------
 //==================================================================
 
 int main(int argc, char * argv[]) {
+	float *X;
+	float *Y;
 	float lr = 0.07;
 	int eps = 25;
 	char * main_script;
-	debug=-1;
+	int debug = -1;
 	// получить аргументы из коммандной строки
-	if (argc==5)
+	if (argc == 5)
 	{
 		lr = (float) atof(argv[1]);
 		eps = atoi(argv[2]);
 		// откуда берем данные и строим график
 		main_script = argv[3];
-		debug=atoi(argv[4]);
+		debug = atoi(argv[4]);
 	}
 	if (!python_init(main_script))
 	{
@@ -90,7 +71,7 @@ int main(int argc, char * argv[]) {
 	PyObject *inner_list = PyList_GetItem(pVal, 0);
 	cols = get_list_size(inner_list);
 	make_matrix_from_pyobj(pVal);
-	vec_train = vec;
+	X = vec;
 	printf("get data y");
 	pVal = do_custum_func("get_data_y", NULL);
 	rows_teach = get_list_size(pVal);
@@ -100,7 +81,7 @@ int main(int argc, char * argv[]) {
 	cols = cols_teach;
 	//		print_deb_matrix(vec_train, rows, cols);
 	make_matrix_from_pyobj(pVal);
-	vec_teacher = vec;
+	Y = vec;
 	// можно пользоваться глобалной vec
 	// используем карту НС
 	printf("get map nn");
@@ -116,7 +97,7 @@ int main(int argc, char * argv[]) {
 	}
 	initiate_layers(map_nn, map_size);
 	//----------запускаем нейросеть----------
-	fit(eps, lr);
+	fit(X, Y, eps, lr, debug);
 	//---------------------------------------
 	plot_grafik_from_C();
 	printf("Predict:\n");
@@ -126,7 +107,7 @@ int main(int argc, char * argv[]) {
 	make_vector_from_pyobj(pVal);
 	pVal = do_custum_func("get_x_max_as_koef", NULL);
 	koef_to_predict = py_float_to_float(pVal);
-	predict(vec);
+	predict(vec, debug);
 	python_clear();
 	//	//------------------------------------------
 	//	destruct();
@@ -320,20 +301,16 @@ destruct() {
 }
 
 void
-fit(int eps, float lr_init) {
-	// реализуем адаптивный коэффициент обучения
-	NN->lr = lr_init;
+fit(float *X, float *Y, int eps, float lr, int debug) {
+	NN->lr = lr;
 	float mse_t;
-	float mse_previous = 0;
-	float lr = NN->lr;
-	float lr_previous = 0;
 	// итерации,обучение
 	int nEpoch = eps;
 	int epocha = 0;
 	// временные вектора для процесса обучения
-	float * tmp_vec_learn = new float [NN->inputNeurons];
+	float * tmp_vec_x = new float [NN->inputNeurons];
 
-	float * tmp_vec_targ = new float [NN->outputNeurons];
+	float * tmp_vec_y = new float [NN->outputNeurons];
 	while (epocha < nEpoch)
 	{
 		//		printf("num Epoch: %d\n", epocha + 1);
@@ -343,18 +320,18 @@ fit(int eps, float lr_init) {
 			//			printf("Vec row:[");
 			for (int elem = 0; elem < NN->inputNeurons; elem++)
 			{
-				tmp_vec_learn[elem] = vec_train[row * cols + elem];
+				tmp_vec_x[elem] = X[row * cols + elem];
 				//				printf("%f,", tmp_vec_learn[elem]);
 			}
 			//			printf("] ; Targ row:[");
 			for (int elem = 0; elem < NN->outputNeurons; elem++)
 			{
-				tmp_vec_targ[elem] = vec_teacher[row * cols_teach + elem];
+				tmp_vec_y[elem] = Y[row * cols_teach + elem];
 				//				printf("%f", tmp_vec_targ[elem]);
 			}
 			//			printf("]\n");
 			//			puts("train");
-			train(tmp_vec_learn, tmp_vec_targ);
+			train(tmp_vec_x, tmp_vec_y, debug);
 			mse_t = getMinimalSquareError(getHidden(&NN->list[NN->nlCount - 1]), NN->outputNeurons);
 			printf("mse: %f\n", mse_t);
 			if (mse_t == 0)
@@ -374,9 +351,10 @@ fit(int eps, float lr_init) {
 
 
 	// деструкторы
-	free(tmp_vec_learn);
-	free(tmp_vec_targ);
-	destruct();
+	delete(tmp_vec_x);
+
+	delete(tmp_vec_y);
+
 }
 
 void adaptive_lr(float &mse, float &mse_previous, float &lr, float &lr_previous) {
@@ -425,27 +403,27 @@ backPropagate() {
 @param targ правильный ответ от учител¤
  */
 void
-train(float *in, float *targ) {
+train(float *in, float *targ, int debug) {
 	NN->inputs = in;
 	NN->targets = targ;
-	feedForwarding(false);
+	feedForwarding(false, debug);
 }
 
 void
-predict(float* in) {
+predict(float* in, int debug) {
 	NN->inputs = in;
-	feedForwarding(true);
+	feedForwarding(true, debug);
 }
 
 void
-feedForwarding(bool ok) {
+feedForwarding(bool ok, int debug) {
 	//	 если ok = true - обучаемся, перед этим выполним один проход по сети
-	makeHidden(&NN->list[0], NN->inputs);
+	makeHidden(&NN->list[0], NN->inputs, debug);
 	//	 для данного слоя получить то что отдал пред-слой
 	{
 		for (int i = 1; i < NN->nlCount; i++)
 			//получаем отдачу слоя и передаем ее следующему  справа как аргумент
-			makeHidden(&NN->list[i], getHidden(&NN->list[i - 1]));
+			makeHidden(&NN->list[i], getHidden(&NN->list[i - 1]), debug);
 	}
 	if (ok)
 	{
@@ -513,13 +491,13 @@ setIO(nnLay *curLay, int outputs, int inputs) {
 	{
 		for (int elem = 0; elem < curLay->in; elem++)
 		{
-			curLay->matrix[row][elem] = randWeight2(curLay->in,1, -1);
+			curLay->matrix[row][elem] = randWeight2(curLay->in, 1, -1);
 		}
 	}
 }
 
 void
-makeHidden(nnLay *curLay, float *inputs) {
+makeHidden(nnLay *curLay, float *inputs, int debug) {
 	float tmpS = 0.0;
 	float val = 0;
 	for (int row = 0; row < curLay->out; row++)
@@ -541,7 +519,7 @@ makeHidden(nnLay *curLay, float *inputs) {
 		val = relu(tmpS);
 		curLay->hidden[row] = val;
 
-		operations(debug,curLay->cost_signals[row], 0, 0,"cost signals");
+		operations(debug, curLay->cost_signals[row], 0, 0, "cost signals");
 		tmpS = 0;
 	}
 
@@ -550,7 +528,7 @@ makeHidden(nnLay *curLay, float *inputs) {
 
 
 	//	}
-	operations(debug,0,0,0,"make hidden made");
+	operations(debug, 0, 0, 0, "make hidden made");
 }
 
 float *
@@ -670,7 +648,7 @@ void decr(PyObject* ob) {
 	Py_XDECREF(ob);
 }
 
-float operations(int op, float a, float b, float c,char* str) {
+float operations(int op, float a, float b, float c, char* str) {
 
 	switch (op) {
 	case RELU:

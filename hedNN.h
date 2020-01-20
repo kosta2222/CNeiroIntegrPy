@@ -24,6 +24,30 @@ extern "C" {
         float* hidden; // что получилось при функции активации
         float* errors; // ошибки данного слоя,их можно сразу наложить на матрицу весо-подправить
     } nnLay;
+
+    typedef struct {
+        nnLay *list;
+        int inputNeurons; // количество выходных нейронов
+        int outputNeurons; // количество входных нейронов
+        int nlCount; // количество слоев
+        float *inputs;
+        float *targets;
+        float lr; // коэффициент обучения
+    } whole_NN_params;
+
+    typedef enum {
+        RELU,
+        RELU_DERIV,
+        SIGMOID,
+        SIGMOID_DERIV,
+        TRESHOLD_FUNC,
+        TRESHOLD_FUNC_DERIV,
+        LEAKY_RELU,
+        LEAKY_RELU_DERIV,
+        INIT_W_HE,
+        INIT_W_GLOROT,
+        DEBUG,
+    } OPS;
     //------------------прототипы для обучения-----------------
     float
     sigmoida(float val);
@@ -32,9 +56,9 @@ extern "C" {
     void
     backPropagate();
     void
-    feedForwarding(bool ok);
+    feedForwarding(bool ok, int debug);
     void
-    train(float *in, float *targ);
+    train(float *in, float *targ, int debug);
     void
     query(float *in);
     int
@@ -52,9 +76,9 @@ extern "C" {
     void
     init(float lr);
     void
-    fit(int epochs, float lr);
+    fit(float *X, float *Y,int eps, float lr, int debug);
     void
-    makeHidden(nnLay *curLay, float *inputs);
+    makeHidden(nnLay *curLay, float *inputs, int debug);
     float*
     getHidden(nnLay *curLay);
     void
@@ -77,7 +101,7 @@ extern "C" {
     void adaptive_lr(float &mse, float &mse_previous, float &lr, float &lr_previous);
     void make_vector_from_pyobj(PyObject *pVal);
     float py_float_to_float(PyObject* pVal);
-    void predict(float* in);
+    void predict(float* in, int debug);
     float operations(int op, float a, float b, float c, char* str);
     //----------------------------------------------------
 #ifdef __cplusplus
