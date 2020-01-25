@@ -15,10 +15,10 @@ vector<int> epochs;
 vector<float>mse;
 float *vec; // C вектор из PyObject-а
 float *X;
-int rows, cols;
+
 float *Y;
 float koef_to_predict;
-int rows_teach, cols_teach;
+
 
 
 /* Исключения, проблемы с памятью
@@ -44,8 +44,11 @@ whole_NN_params * NN;
 //==================================================================
 
 int main(int argc, char * argv[]) {
+
 	float *X;
 	float *Y;
+	int tmp_rows;
+	int tmp_cols;
 	float lr = 0.07;
 	int eps = 25;
 	char * main_script;
@@ -59,28 +62,30 @@ int main(int argc, char * argv[]) {
 		main_script = argv[3];
 		debug = atoi(argv[4]);
 	}
-	if (!python_init(main_script))
-	{
-		puts("python_init error");
-		return -1;
-	}
+//	if (!python_init(main_script))
+//	{
+//		puts("python_init error");
+//		return -1;
+//	}
 	//----------Загрузим матрицы из скрипта---------
 	printf("get data x");
 	pVal = do_custum_func("get_data_x", NULL);
-	rows = get_list_size(pVal);
+	tmp_rows = get_list_size(pVal);
 	PyObject *inner_list = PyList_GetItem(pVal, 0);
-	cols = get_list_size(inner_list);
-	make_matrix_from_pyobj(pVal);
+	tmp_cols = get_list_size(inner_list);
+	int cols_train=tmp_cols;
+	make_matrix_from_pyobj(pVal, tmp_rows, tmp_cols);
 	X = vec;
 	printf("get data y");
 	pVal = do_custum_func("get_data_y", NULL);
-	rows_teach = get_list_size(pVal);
+	tmp_rows = get_list_size(pVal);
 	inner_list = PyList_GetItem(pVal, 0);
-	cols_teach = get_list_size(inner_list);
-	rows = rows_teach;
-	cols = cols_teach;
+	tmp_cols = get_list_size(inner_list);
+	int cols_teach=tmp_cols;
+	//	rows = rows_teach;
+	//	cols = cols_teach;
 	//		print_deb_matrix(vec_train, rows, cols);
-	make_matrix_from_pyobj(pVal);
+	make_matrix_from_pyobj(pVal, tmp_rows, tmp_cols);
 	Y = vec;
 	// можно пользоваться глобалной vec
 	// используем карту НС
@@ -94,17 +99,20 @@ int main(int argc, char * argv[]) {
 		tmp_elem = PyTuple_GetItem(pVal, i);
 		map_nn[i] = (int) PyLong_AsLong(tmp_elem);
 		printf("map_nn - %d\n", map_nn[i]);
+		decr(tmp_elem);
 	}
+
 	initiate_layers(map_nn, map_size);
+//	initiate_pyRandom_module();
 	//----------запускаем нейросеть----------
-	fit(X, Y, eps, lr, debug);
+//	fit(X, Y, tmp_rows,cols_train,cols_teach, eps, lr, debug);
 	//---------------------------------------
 	plot_grafik_from_C();
 	printf("Predict:\n");
 	pVal = do_custum_func("get_ask_data", NULL);
 
-	rows = get_list_size(pVal);
-	make_vector_from_pyobj(pVal);
+	tmp_cols = get_list_size(pVal);
+	make_vector_from_pyobj(pVal, tmp_cols);
 	pVal = do_custum_func("get_x_max_as_koef", NULL);
 	koef_to_predict = py_float_to_float(pVal);
 	predict(vec, debug);
@@ -112,6 +120,14 @@ int main(int argc, char * argv[]) {
 	//	//------------------------------------------
 	//	destruct();
 	return 0;
+}
+
+void initiate_pyRandom_module() {
+	pModuleRandom = PyImport_ImportModule("random");
+	pDictRandom = PyModule_GetDict(pModuleRandom);
+	pClassRandom = PyDict_GetItemString(pDictRandom, "Random");
+	pInstanceRandom = PyObject_CallObject(pClassRandom, NULL);
+
 }
 
 float py_float_to_float(PyObject* pVal) {
@@ -169,7 +185,7 @@ void print_deb_matrix(float *vec, int rows, int cols) {
 	}
 }
 
-void make_matrix_from_pyobj(PyObject *pVal) {
+void make_matrix_from_pyobj(PyObject *pVal, int rows, int cols) {
 	PyObject * tmp_row;
 	PyObject* tmp_elem;
 	float val;
@@ -182,16 +198,18 @@ void make_matrix_from_pyobj(PyObject *pVal) {
 			tmp_elem = PyList_GetItem(tmp_row, x); // выбираем элемент по колонке 		       
 			val = (float) PyFloat_AsDouble(tmp_elem);
 			vec[y * cols + x] = val;
+			decr(tmp_elem);
 		}
+		decr(tmp_row);
 	}
 }
 
-void make_vector_from_pyobj(PyObject *pVal) {
+void make_vector_from_pyobj(PyObject *pVal, int cols) {
 
 	PyObject* tmp_elem;
 	float val;
 	vec = new float[cols];
-	for (int x = 0; x < rows; x++)
+	for (int x = 0; x < cols; x++)
 	{
 		tmp_elem = PyList_GetItem(pVal, x); // выбираем элемент		       
 		val = (float) PyFloat_AsDouble(tmp_elem);
@@ -251,12 +269,12 @@ python_init(char * py_module_name) {
 void
 python_clear() {
 	// Вернуть ресурсы системе
-	Py_XDECREF(pDict);
-	Py_XDECREF(pModule);
-	Py_XDECREF(pName);
-	Py_XDECREF(folder_path);
-	Py_XDECREF(sys_path);
-	Py_XDECREF(sys);
+	decr(pDict);
+	decr(pModule);
+	decr(pName);
+	decr(folder_path);
+	decr(sys_path);
+	decr(sys);
 	// Выгрузка интерпритатора Python
 	Py_Finalize();
 }
@@ -301,7 +319,7 @@ destruct() {
 }
 
 void
-fit(float *X, float *Y, int eps, float lr, int debug) {
+fit(float *X, float *Y, int rows, int cols_train, int cols_teach, int eps, float lr, int debug) {
 	NN->lr = lr;
 	float mse_t;
 	// итерации,обучение
@@ -320,7 +338,7 @@ fit(float *X, float *Y, int eps, float lr, int debug) {
 			//			printf("Vec row:[");
 			for (int elem = 0; elem < NN->inputNeurons; elem++)
 			{
-				tmp_vec_x[elem] = X[row * cols + elem];
+				tmp_vec_x[elem] = X[row * cols_train + elem];
 				//				printf("%f,", tmp_vec_learn[elem]);
 			}
 			//			printf("] ; Targ row:[");
@@ -352,7 +370,6 @@ fit(float *X, float *Y, int eps, float lr, int debug) {
 
 	// деструкторы
 	delete(tmp_vec_x);
-
 	delete(tmp_vec_y);
 
 }
@@ -712,7 +729,19 @@ float operations(int op, float a, float b, float c, char* str) {
 	}
 	case INIT_W_HE:
 	{
-		return((float) rand() / (float) RAND_MAX)*(b * sqrt(2 / c) - a * sqrt(2 / c)) + a * sqrt(2 / c);
+		PyObject* pValue;
+		//		return((float) rand() / (float) RAND_MAX)*(b * sqrt(2 / c) - a * sqrt(2 / c)) + a * sqrt(2 / c);
+		if (PyCallable_Check(pInstanceRandom))
+		{
+			pValue = PyObject_CallMethod(pInstanceRandom, "gauss", "(ii)", 0, 1);
+
+		} else
+		{
+			PyErr_Print();
+		}
+		float r = PyFloat_AsDouble(pValue);
+		decr(pValue);
+		return r * sqrt(2 / a);
 	}
 
 

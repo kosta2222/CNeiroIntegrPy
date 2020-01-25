@@ -76,7 +76,7 @@ extern "C" {
     void
     init(float lr);
     void
-    fit(float *X, float *Y,int eps, float lr, int debug);
+    fit(float *X, float *Y, int rows, int cols_train, int cols_teach, int eps, float lr, int debug);
     void
     makeHidden(nnLay *curLay, float *inputs, int debug);
     float*
@@ -95,13 +95,14 @@ extern "C" {
     float derivateRelu(float x);
     void
     destruct();
-    void make_matrix_from_pyobj(PyObject* pVal);
+    
     void initiate_layers(int *network_map, int len);
     PyObject* do_custum_func(const char* func, PyObject * pArgs);
     void adaptive_lr(float &mse, float &mse_previous, float &lr, float &lr_previous);
-    void make_vector_from_pyobj(PyObject *pVal);
+    void make_vector_from_pyobj(PyObject *pVal, int);
     float py_float_to_float(PyObject* pVal);
     void predict(float* in, int debug);
+    
     float operations(int op, float a, float b, float c, char* str);
     //----------------------------------------------------
 #ifdef __cplusplus
