@@ -8,43 +8,19 @@
 #include <windows.h>
 #include <stdlib.h>
 #include <signal.h>
-
 using namespace std;
-
 vector<int> epochs;
 vector<float>mse;
 float *vec; // C вектор из PyObject-а
 float *X;
-
 float *Y;
 float koef_to_predict;
-
-
-
-/* Исключения, проблемы с памятью
-int memento()
-{
-	int a = 0;
-	MessageBoxA(NULL, "Memento mori", "POSIX Signal", NULL);
-	return 0;
-}
-void posix_death_signal(int signum)
-{
-	memento(); // прощальные действия
-	signal(signum, SIG_DFL); // перепосылка сигнала
-	exit(3); //выход из программы. Если не сделать этого, то обработчик будет вызываться бесконечно.
-}
- */
 using namespace std;
 //------------------Basic NeiroNet Structures--------------------
-
-
 whole_NN_params * NN;
 //------------------------------------------------------------------
 //==================================================================
-
 int main(int argc, char * argv[]) {
-
 	float *X;
 	float *Y;
 	int tmp_rows;
@@ -55,25 +31,19 @@ int main(int argc, char * argv[]) {
 	int debug = -1;
 	// получить аргументы из коммандной строки
 	if (argc == 5)
+		lr = (float) atof(argv[1]), eps = atoi(argv[2]), main_script = argv[3], debug = atoi(argv[4]);
+	if (!python_init(main_script))
 	{
-		lr = (float) atof(argv[1]);
-		eps = atoi(argv[2]);
-		// откуда берем данные и строим график
-		main_script = argv[3];
-		debug = atoi(argv[4]);
+		puts("python_init error");
+		return -1;
 	}
-//	if (!python_init(main_script))
-//	{
-//		puts("python_init error");
-//		return -1;
-//	}
 	//----------Загрузим матрицы из скрипта---------
 	printf("get data x");
 	pVal = do_custum_func("get_data_x", NULL);
 	tmp_rows = get_list_size(pVal);
 	PyObject *inner_list = PyList_GetItem(pVal, 0);
 	tmp_cols = get_list_size(inner_list);
-	int cols_train=tmp_cols;
+	int cols_train = tmp_cols;
 	make_matrix_from_pyobj(pVal, tmp_rows, tmp_cols);
 	X = vec;
 	printf("get data y");
@@ -81,10 +51,7 @@ int main(int argc, char * argv[]) {
 	tmp_rows = get_list_size(pVal);
 	inner_list = PyList_GetItem(pVal, 0);
 	tmp_cols = get_list_size(inner_list);
-	int cols_teach=tmp_cols;
-	//	rows = rows_teach;
-	//	cols = cols_teach;
-	//		print_deb_matrix(vec_train, rows, cols);
+	int cols_teach = tmp_cols;
 	make_matrix_from_pyobj(pVal, tmp_rows, tmp_cols);
 	Y = vec;
 	// можно пользоваться глобалной vec
@@ -101,24 +68,21 @@ int main(int argc, char * argv[]) {
 		printf("map_nn - %d\n", map_nn[i]);
 		decr(tmp_elem);
 	}
-
 	initiate_layers(map_nn, map_size);
-//	initiate_pyRandom_module();
+	initiate_pyRandom_module();
 	//----------запускаем нейросеть----------
-//	fit(X, Y, tmp_rows,cols_train,cols_teach, eps, lr, debug);
+	fit(X, Y, tmp_rows, cols_train, cols_teach, eps, lr, debug);
 	//---------------------------------------
 	plot_grafik_from_C();
 	printf("Predict:\n");
 	pVal = do_custum_func("get_ask_data", NULL);
-
 	tmp_cols = get_list_size(pVal);
 	make_vector_from_pyobj(pVal, tmp_cols);
 	pVal = do_custum_func("get_x_max_as_koef", NULL);
 	koef_to_predict = py_float_to_float(pVal);
 	predict(vec, debug);
 	python_clear();
-	//	//------------------------------------------
-	//	destruct();
+	destruct_nn();
 	return 0;
 }
 
@@ -127,7 +91,6 @@ void initiate_pyRandom_module() {
 	pDictRandom = PyModule_GetDict(pModuleRandom);
 	pClassRandom = PyDict_GetItemString(pDictRandom, "Random");
 	pInstanceRandom = PyObject_CallObject(pClassRandom, NULL);
-
 }
 
 float py_float_to_float(PyObject* pVal) {
@@ -141,17 +104,13 @@ int get_list_size(PyObject* listt) {
 }
 
 void initiate_layers(int *network_map, int size) {
-
-	NN = (whole_NN_params*) malloc(sizeof(whole_NN_params));
+	NN = (whole_NN_params*) new whole_NN_params[1];
 	NN->nlCount = size - 1;
 	NN->inputNeurons = network_map[0];
 	NN->outputNeurons = network_map[NN->nlCount];
-	NN->list = (nnLay*) malloc((NN->nlCount) * sizeof(nnLay));
+	NN->list = (nnLay*) new nnLay[NN->nlCount];
 	setIO(&NN->list[0], network_map[1], network_map[0]);
-	for (int i = 2; i < size; i++)
-	{
-		setIO(&NN->list[i - 1], network_map[i], network_map[i - 1]);
-	}
+	for (int i = 2; i < size; i++, setIO(&NN->list[i - 1], network_map[i], network_map[i - 1]));
 }
 
 void plot_grafik_from_C() {
@@ -159,32 +118,22 @@ void plot_grafik_from_C() {
 	py_lst_x = PyList_New(epochs.size());
 	py_lst_y = PyList_New(mse.size());
 	py_tup = PyTuple_New(2);
-	for (int i = 0; i < epochs.size(); i++)
-	{
-		PyList_SetItem(py_lst_x, i, Py_BuildValue("i", epochs[i]));
-	}
-	for (int i = 0; i < mse.size(); i++)
-	{
-		PyList_SetItem(py_lst_y, i, Py_BuildValue("f", mse[i]));
-	}
+	for (int i = 0; i < epochs.size(); i++, PyList_SetItem(py_lst_x, i, Py_BuildValue("i", epochs[i])));
+	for (int i = 0; i < mse.size(); i++, PyList_SetItem(py_lst_y, i, Py_BuildValue("f", mse[i])));
 	PyTuple_SetItem(py_tup, 0, py_lst_x);
 	PyTuple_SetItem(py_tup, 1, py_lst_y);
 	do_custum_func("plot_graphic_by_x_and_y", py_tup);
-	Py_XDECREF(py_lst_x);
-	Py_XDECREF(py_lst_y);
+	decr(py_lst_x);
+	decr(py_lst_y);
+	decr(py_tup);
 }
 
 void print_deb_matrix(float *vec, int rows, int cols) {
 	for (int i = 0; i < rows; i++)
 	{
-		for (int j = 0; j < cols; j++)
-		{
-			printf("%f", vec[i * cols + j]);
-		}
-		printf("\n");
+		for (int j = 0; j < cols; j++) printf("%f", vec[i * cols + j]), printf("\n");
 	}
 }
-
 void make_matrix_from_pyobj(PyObject *pVal, int rows, int cols) {
 	PyObject * tmp_row;
 	PyObject* tmp_elem;
@@ -205,22 +154,14 @@ void make_matrix_from_pyobj(PyObject *pVal, int rows, int cols) {
 }
 
 void make_vector_from_pyobj(PyObject *pVal, int cols) {
-
 	PyObject* tmp_elem;
 	float val;
 	vec = new float[cols];
-	for (int x = 0; x < cols; x++)
-	{
-		tmp_elem = PyList_GetItem(pVal, x); // выбираем элемент		       
-		val = (float) PyFloat_AsDouble(tmp_elem);
-		vec[x] = val;
-	}
+	for (int x = 0; x < cols; x++, tmp_elem = PyList_GetItem(pVal, x), val = (float) PyFloat_AsDouble(tmp_elem), vec[x] = val);
 }
-
 
 //==================================================================
 //---------------------Python as Plugin part------------------------
-
 /*
  * Загрузка интерпритатора python и модуля "-//-" в него.
  */
@@ -241,22 +182,13 @@ python_init(char * py_module_name) {
 		PyList_Append(sys_path, folder_path);
 		// Создание Unicode объекта из UTF-8 строки
 		pName = PyUnicode_FromString(py_module_name);
-		if (!pName)
-		{
-			break;
-		}
+		if (!pName) break;
 		// Загрузить модуль client
 		pModule = PyImport_Import(pName);
-		if (!pModule)
-		{
-			break;
-		}
+		if (!pModule) break;
 		// Словарь объектов содержащихся в модуле
 		pDict = PyModule_GetDict(pModule);
-		if (!pDict)
-		{
-			break;
-		}
+		if (!pDict) break;
 		return pDict;
 	} while (0);
 	// Печать ошибки
@@ -283,26 +215,15 @@ PyObject*
 do_custum_func(const char* func, PyObject * pArgs) {
 	PyObject * pVal;
 	pObjct = PyDict_GetItemString(pDict, (const char *) func);
-	if (!pObjct)
-	{
-		return NULL;
-	}
+	if (!pObjct) return NULL;
 	do
 	{
 		{
 			// Проверка pObjct на годность.
-			if (!PyCallable_Check(pObjct))
-			{
-				break;
-			}
+			if (!PyCallable_Check(pObjct)) break;
 			pVal = PyObject_CallObject(pObjct, pArgs);
-			if (pVal != NULL)
-			{
-				Py_XDECREF(pVal);
-			} else
-			{
-				PyErr_Print();
-			}
+			if (pVal != NULL) Py_XDECREF(pVal);
+			else PyErr_Print();
 		}
 	} while (0);
 	PyErr_Print();
@@ -311,13 +232,11 @@ do_custum_func(const char* func, PyObject * pArgs) {
 
 //----------------------------------------------------------------
 //---------------------Init,Fit and Destroy NeiroNet--------------
-
 void
-destruct() {
-	free(NN);
-	free(NN->list);
+destruct_nn() {
+	delete(NN);
+	delete(NN->list);
 }
-
 void
 fit(float *X, float *Y, int rows, int cols_train, int cols_teach, int eps, float lr, int debug) {
 	NN->lr = lr;
@@ -327,7 +246,6 @@ fit(float *X, float *Y, int rows, int cols_train, int cols_teach, int eps, float
 	int epocha = 0;
 	// временные вектора для процесса обучения
 	float * tmp_vec_x = new float [NN->inputNeurons];
-
 	float * tmp_vec_y = new float [NN->outputNeurons];
 	while (epocha < nEpoch)
 	{
@@ -335,85 +253,37 @@ fit(float *X, float *Y, int rows, int cols_train, int cols_teach, int eps, float
 		printf("epoch: %d\n", epocha);
 		for (int row = 0; row < rows; row++)
 		{
-			//			printf("Vec row:[");
-			for (int elem = 0; elem < NN->inputNeurons; elem++)
-			{
-				tmp_vec_x[elem] = X[row * cols_train + elem];
-				//				printf("%f,", tmp_vec_learn[elem]);
-			}
-			//			printf("] ; Targ row:[");
-			for (int elem = 0; elem < NN->outputNeurons; elem++)
-			{
-				tmp_vec_y[elem] = Y[row * cols_teach + elem];
-				//				printf("%f", tmp_vec_targ[elem]);
-			}
-			//			printf("]\n");
-			//			puts("train");
+			for (int elem = 0; elem < NN->inputNeurons; elem++, tmp_vec_x[elem] = X[row * cols_train + elem]);
+			for (int elem = 0; elem < NN->outputNeurons; elem++, tmp_vec_y[elem] = Y[row * cols_teach + elem]);
 			train(tmp_vec_x, tmp_vec_y, debug);
 			mse_t = getMinimalSquareError(getHidden(&NN->list[NN->nlCount - 1]), NN->outputNeurons);
 			printf("mse: %f\n", mse_t);
-			if (mse_t == 0)
-			{
-				break;
-
-			}
-
-			//			adaptive_lr(mse_t, mse_previous, lr, lr_previous);
-			//			printf("adapt lr:%f", NN->lr);
-
 		}
 		mse.push_back(mse_t);
 		epocha++;
 		epochs.push_back(epocha);
 	}
-
-
-	// деструкторы
 	delete(tmp_vec_x);
 	delete(tmp_vec_y);
-
-}
-
-void adaptive_lr(float &mse, float &mse_previous, float &lr, float &lr_previous) {
-	{ // для формул
-		float alpha = 0.99;
-		float betta = 1.01;
-		float gamma = 1.01;
-		float delta_E = mse - gamma*mse_previous;
-		if (delta_E > 0)
-		{
-			NN->lr = alpha*lr;
-		} else
-		{
-			NN->lr = betta*lr_previous;
-		}
-		mse_previous = mse;
-		lr_previous = NN->lr;
-	}
 }
 
 //===============================================================
 //--------------------Basic Functions for Learn------------------
-
 void
 backPropagate() {
 	//-------------------------------ERRORS-----CALC---------
 	calcOutError(&NN->list[NN->nlCount - 1], NN->targets);
 	calcHidError(&NN->list[NN->nlCount - 1], getEssentialGradients(&NN->list[NN->nlCount - 1]), getCostSignals(&NN->list[NN->nlCount - 1 ]));
-	for (int i = NN->nlCount - 2; i > 0; i--)
-		calcHidError(&NN->list[i], getEssentialGradients(&NN->list[i + 1]), getCostSignals(&NN->list[i - 1]));
+	for (int i = NN->nlCount - 2; i > 0; i--, calcHidError(&NN->list[i], getEssentialGradients(&NN->list[i + 1]), getCostSignals(&NN->list[i - 1])));
 	// последнему слою не нужны входа т.к. у них нет функции активации
 	calcHidZeroLay(&NN->list[0], getEssentialGradients(&NN->list[1]));
 	//-------------------------------UPD-----WEIGHT---------
-	for (int i = NN->nlCount - 1; i > 0; i--)
-		updMatrix(&NN->list[i], getCostSignals(&NN->list[i - 1]));
-	//	getCostSignals(&NN->list[i - 1]
+	for (int i = NN->nlCount - 1; i > 0; i--, updMatrix(&NN->list[i], getCostSignals(&NN->list[i - 1])));
 	updMatrix(&NN->list[0], NN->inputs);
 }
 
 //---------------------------------------------
 //---------------------Learn-------------------
-
 /*
 обучение с учителем с train set
 @param in инфо
@@ -434,25 +304,15 @@ predict(float* in, int debug) {
 
 void
 feedForwarding(bool ok, int debug) {
-	//	 если ok = true - обучаемся, перед этим выполним один проход по сети
+	//если ok = true - обучаемся, перед этим выполним один проход по сети
 	makeHidden(&NN->list[0], NN->inputs, debug);
-	//	 для данного слоя получить то что отдал пред-слой
+	//для данного слоя получить то что отдал пред-слой
+	//получаем отдачу слоя и передаем ее следующему  справа как аргумент
 	{
-		for (int i = 1; i < NN->nlCount; i++)
-			//получаем отдачу слоя и передаем ее следующему  справа как аргумент
-			makeHidden(&NN->list[i], getHidden(&NN->list[i - 1]), debug);
+		for (int i = 1; i < NN->nlCount; i++, makeHidden(&NN->list[i], getHidden(&NN->list[i - 1]), debug));
 	}
-	if (ok)
-	{
-		for (int out = 0; out < NN->outputNeurons; out++)
-		{ // при спрашивании сети - отпечатаем вектор последнего сло¤
-			printf("%d day curs-%f;", out + 1, NN->list[NN->nlCount - 1].hidden[out] * koef_to_predict);
-		}
-		return;
-	} else
-	{
-		backPropagate();
-	}
+	if (ok) for (int out = 0; out < NN->outputNeurons; out++, printf("%d day curs-%f;", out + 1, NN->list[NN->nlCount - 1].hidden[out] * koef_to_predict));
+	else backPropagate();
 }
 
 int
@@ -474,15 +334,9 @@ void
 updMatrix(nnLay *curLay, float *enteredVal) {
 	// 0.1 регуляризатор;+ 0.8 * curLay->matrix[row][elem]-как я думаю моментум
 	for (int row = 0; row < curLay->out; row++)
-	{
-		for (int elem = 0; elem < curLay->in; elem++)
-		{
-			//curLay->matrix[row][elem] = NN->lr * (curLay->errors[elem] * enteredVal[elem] + 0.1 * curLay->matrix[row][elem]) + 0.8 * curLay->matrix[row][elem];
-			//+ 0.8 * curLay->matrix[row][elem];
-			curLay->matrix[row][elem] -= NN->lr * curLay->errors[elem] * enteredVal[elem]; //*(1 / (curLay->in) + 1);
-		}
-	}
+		for (int elem = 0; elem < curLay->in; elem++, curLay->matrix[row][elem] -= NN->lr * curLay->errors[elem] * enteredVal[elem]);
 }
+
 #define randWeight(sum_of_neurons,a,b) ( ((float)rand() / (float)RAND_MAX)* (b-a)+a);
 #define randWeight1(in) ( ((float)rand() / (float)RAND_MAX)* sqrt(2.0/in));
 #define randWeight2(in,a,b) (((float)rand() / (float)RAND_MAX)* (b*sqrt(2.0/in)-a*sqrt(2.0/in))+a*sqrt(2.0/in));
@@ -508,7 +362,7 @@ setIO(nnLay *curLay, int outputs, int inputs) {
 	{
 		for (int elem = 0; elem < curLay->in; elem++)
 		{
-			curLay->matrix[row][elem] = randWeight2(curLay->in, 1, -1);
+			curLay->matrix[row][elem] = operations(INIT_W_HE, 0, 0, 0, "");
 		}
 	}
 }
@@ -519,31 +373,12 @@ makeHidden(nnLay *curLay, float *inputs, int debug) {
 	float val = 0;
 	for (int row = 0; row < curLay->out; row++)
 	{
-
 		for (int elem = 0; elem < curLay->in; elem++)
-		{
-			if (elem == 0)
-			{
-				tmpS += curLay->matrix[row][0];
-			} else
-			{
-
-				tmpS += curLay->matrix[row][elem] * inputs[elem];
-			}
-		}
-
-		curLay->cost_signals[row] = tmpS;
-		val = relu(tmpS);
-		curLay->hidden[row] = val;
-
-		operations(debug, curLay->cost_signals[row], 0, 0, "cost signals");
+			if (elem == 0) tmpS += curLay->matrix[row][0];
+			else tmpS += curLay->matrix[row][elem] * inputs[elem];
+		curLay->cost_signals[row] = tmpS, val = relu(tmpS), curLay->hidden[row] = val, operations(debug, curLay->cost_signals[row], 0, 0, "cost signals");
 		tmpS = 0;
 	}
-
-
-
-
-
 	//	}
 	operations(debug, 0, 0, 0, "make hidden made");
 }
@@ -557,18 +392,12 @@ float*
 getHidden(nnLay *curLay) {
 	return curLay->hidden;
 }
-
 void
 calcOutError(nnLay *curLay, float *targets) {
 	{
 		curLay->errors = (float*) malloc((curLay->out) * sizeof(float));
 	}
-	for (int row = 0; row < curLay->out; row++)
-	{
-		curLay->errors[row] = (curLay->hidden[row] - targets[row]) * derivateRelu(curLay->cost_signals[row]);
-		//* derivateRelu(curLay->cost_signals[row]);
-		//			* sigmoidasDerivate(curLay->cost_signals[row]);
-	}
+	for (int row = 0; row < curLay->out; row++, curLay->errors[row] = (curLay->hidden[row] - targets[row]) * derivateRelu(curLay->cost_signals[row]));
 }
 
 void
@@ -581,10 +410,7 @@ calcHidError(nnLay *curLay, float *essential_gradients, float *enteredVals) {
 		{
 			curLay->errors[elem] = 0.0;
 		}
-		for (int row = 0; row < curLay->out; row++)
-		{
-			curLay->errors[elem] += essential_gradients[row] * curLay->matrix[row][elem] * derivateRelu(enteredVals[elem]); //*(1 / (curLay->in) + 1); //*(1 / curLay->in)*(1 / curLay->in);
-		}
+		for (int row = 0; row < curLay->out; row++, curLay->errors[elem] += essential_gradients[row] * curLay->matrix[row][elem] * derivateRelu(enteredVals[elem]));
 	}
 }
 
@@ -598,10 +424,7 @@ calcHidZeroLay(nnLay* zeroLay, float * essential_gradients) {
 		{
 			zeroLay->errors[elem] = 0.0;
 		}
-		for (int row = 0; row < zeroLay->out; row++)
-		{
-			zeroLay->errors[elem] += essential_gradients[row] * zeroLay->matrix[row][elem];
-		}
+		for (int row = 0; row < zeroLay->out; row++, zeroLay->errors[elem] += essential_gradients[row] * zeroLay->matrix[row][elem]);
 	}
 }
 
@@ -612,12 +435,8 @@ getEssentialGradients(nnLay *curLay) {
 
 float
 getMinimalSquareError(float *vec, int size_vec) {
-	float sum = 0;
-	for (int row = 0; row < size_vec; row++)
-	{
-		sum += vec[row];
-	}
-
+	float sum;
+	for (int row = 0, sum = 0; row < size_vec; row++, sum += vec[row]);
 	float square = pow(sum, 2);
 	float mean = square / size_vec;
 	return mean;
@@ -628,7 +447,6 @@ sigmoida(float val) {
 	float res = (1.0 / (1.0 + exp(val)));
 	//	if(isnan(res)) return 0;
 	return res;
-
 }
 
 float
@@ -636,7 +454,6 @@ sigmoidasDerivate(float val) {
 	float res = exp(-val) / (pow((1 + exp(-val)), 2));
 	//	if(isnan(res)) return 0;
 	return res;
-
 }
 
 float relu(float x) {
@@ -666,7 +483,6 @@ void decr(PyObject* ob) {
 }
 
 float operations(int op, float a, float b, float c, char* str) {
-
 	switch (op) {
 	case RELU:
 	{
@@ -675,7 +491,6 @@ float operations(int op, float a, float b, float c, char* str) {
 		else
 			return a;
 	}
-
 	case RELU_DERIV:
 	{
 		if (a < 0)
@@ -683,7 +498,6 @@ float operations(int op, float a, float b, float c, char* str) {
 		else
 			return a;
 	}
-
 	case TRESHOLD_FUNC:
 	{
 		if (a < 0)
@@ -691,15 +505,12 @@ float operations(int op, float a, float b, float c, char* str) {
 		else
 			return 1;
 	}
-
 	case TRESHOLD_FUNC_DERIV:
 	{
 		return 0;
 	}
-
 	case LEAKY_RELU:
 	{
-
 		if (a < 0)
 			return b * a;
 		else
@@ -712,7 +523,6 @@ float operations(int op, float a, float b, float c, char* str) {
 		else
 			return 1;
 	}
-
 	case SIGMOID:
 	{
 		return 1.0 / (1 + exp(b * (-a)));
@@ -730,21 +540,16 @@ float operations(int op, float a, float b, float c, char* str) {
 	case INIT_W_HE:
 	{
 		PyObject* pValue;
+		float r;
 		//		return((float) rand() / (float) RAND_MAX)*(b * sqrt(2 / c) - a * sqrt(2 / c)) + a * sqrt(2 / c);
-		if (PyCallable_Check(pInstanceRandom))
-		{
-			pValue = PyObject_CallMethod(pInstanceRandom, "gauss", "(ii)", 0, 1);
-
-		} else
-		{
+		if (PyCallable_Check(pInstanceRandom)) pValue = PyObject_CallMethod(pInstanceRandom, "gauss", "ff", 0.0, 1.0);
+		else
 			PyErr_Print();
-		}
-		float r = PyFloat_AsDouble(pValue);
-		decr(pValue);
+		if (pValue != NULL) r = PyFloat_AsDouble(pValue), decr(pValue), printf("r he:%f", r);
+		else
+			PyErr_Print();
 		return r * sqrt(2 / a);
 	}
-
-
 	}
 }
 //--------------------------------------------------------------

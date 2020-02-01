@@ -94,7 +94,7 @@ extern "C" {
     float relu(float x);
     float derivateRelu(float x);
     void
-    destruct();
+    destruct_nn();
     
     void initiate_layers(int *network_map, int len);
     PyObject* do_custum_func(const char* func, PyObject * pArgs);
