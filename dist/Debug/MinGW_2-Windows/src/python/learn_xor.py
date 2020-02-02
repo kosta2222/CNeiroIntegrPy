@@ -1,8 +1,7 @@
 import sys;sys.argv = ['test'] # Здесь обязательно указываем имя скрипта,что бы Matplotlib работал 
+#import matplotlib.pyplot as plt
+#import pandas as p
 """
-import matplotlib.pyplot as plt
-import pandas as p
-
 def plot_graphic_by_x_and_y(*args):
   
   fig,ax=plt.subplots() 
