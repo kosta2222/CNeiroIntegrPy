@@ -14,15 +14,21 @@ extern "C" {
 #include <math.h>
 #include <stdbool.h>
 #include "hedPy.h"
+
+#define max_in_nn 30
+#define max_trainSet_rows 200
+#define max_rows_orOut	10
+#define max_am_layer 7	
+
 	// Представляет из себя слой
 
 	typedef struct {
 		int in; // сенсоры данного слоя
 		int out; // связи-выходы-данного-слоя-синапсы
-		float matrix[10][10]; // матрица весов данного слоя
-		float cost_signals[10]; // после матричного умножения
-		float hidden[10]; // что получилось при функции активации
-		float errors[10]; // ошибки данного слоя,их можно сразу наложить на матрицу весов-подправить
+		float matrix[max_rows_orOut][max_in_nn]; // матрица весов данного слоя
+		float cost_signals[max_rows_orOut]; // после матричного умножения
+		float hidden[max_rows_orOut]; // что получилось при функции активации
+		float errors[max_rows_orOut]; // ошибки данного слоя,их можно сразу наложить на матрицу весов-подправить
 	} nnLay;
 
 	typedef struct {
@@ -105,6 +111,7 @@ extern "C" {
 	void predict(float* in, int debug);
 	float operations(int op, float a, float b, float c, int d, char* str);
 	//----------------------------------------------------
+
 #ifdef __cplusplus
 }
 #endif
