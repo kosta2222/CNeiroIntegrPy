@@ -94,11 +94,12 @@ def get_data_x():
 def get_data_y():
     return y_norm
 
-def get_ask_data():
-    return ask_vector
+
 
 def get_map_nn():
     return map_nn
 
 def get_x_max_as_koef():
     return x_max
+def get_ask_data():
+  return ask_vector

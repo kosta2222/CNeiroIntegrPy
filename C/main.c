@@ -7,6 +7,7 @@
 //#include <vector>
 #include <stdio.h>
 #include <stdlib.h>
+#include <synchapi.h>
 //using namespace std;
 //vector<int> epochs;
 //vector<float>mse;
@@ -76,16 +77,26 @@ int main(int argc, char * argv[]) {
     c(fit(X, Y, tmp_rows, cols_train, cols_teach, eps, lr, debug), "fit(X, Y, tmp_rows, cols_train, cols_teach, eps, lr, debug)")
     //---------------------------------------
     //		plot_grafik_from_C();
+    clear_random();
+    /*
+        do_custum_func("del_objs", NULL);
+     */
+    Sleep(3000);
     printf("Predict:\n");
     pVal = do_custum_func("get_ask_data", NULL);
-    tmp_cols = get_list_size(pVal);
-    make_vector_from_pyobj(pVal, X, tmp_cols);
-    //	pVal = do_custum_func("get_x_max_as_koef", NULL);
-    //	koef_to_predict = py_float_to_float(pVal);
-    predict(X, debug);
+    //    check_d(pVal = do_custum_func("get_ask_data", NULL), "main", "pVal get_ask_data");
+    //    PyErr_Print();
     /*
-        python_clear();
+        pVal=PyList_New(3);
      */
+    tmp_cols = get_list_size(pVal);
+
+    make_vector_from_pyobj(pVal, X, tmp_cols);
+    pVal = do_custum_func("get_x_max_as_koef", NULL);
+    koef_to_predict = py_float_to_float(pVal);
+    predict(X, debug);
+    clear_userModule();
+    python_clear();
     _0_("main");
 }
 //========[/main функция]=============
@@ -122,6 +133,7 @@ void print_deb_matrix(float *vec, int rows, int cols) {
 
 void py_init() {
     Py_Initialize();
+    Py_DebugFlag = 1;
 }
 
 /*
@@ -159,19 +171,30 @@ python_user_script(char * py_module_name) {
  */
 void
 python_clear() {
-    // Вернуть ресурсы системе
-    decr(pDict);
-    decr(pModule);
-    decr(pName);
-    decr(folder_path);
-    decr(sys_path);
-    decr(sys);
-    decr(pDictRandom);
-    decr(pClassRandom);
-    decr(pInstanceRandom);
-    decr(pModuleRandom);
     // Выгрузка интерпритатора Python
     Py_Finalize();
+}
+
+void clear_random() {
+    clear_pyObj(pDictRandom);
+    clear_pyObj(pClassRandom);
+    clear_pyObj(pInstanceRandom);
+    clear_pyObj(pModuleRandom);
+
+}
+
+void clear_userModule() {
+    clear_pyObj(pDict);
+    clear_pyObj(pModule);
+    clear_pyObj(pName);
+    clear_pyObj(folder_path);
+    clear_pyObj(sys_path);
+    clear_pyObj(sys);
+    clear_pyObj(pVal);
+}
+
+void clear_pyObj(PyObject* ob) {
+    Py_CLEAR(ob);
 }
 
 PyObject*
@@ -183,8 +206,10 @@ do_custum_func(const char* func, PyObject * pArgs) {
             // Проверка pObjct на годность.
         if (!PyCallable_Check(pObjct)) break;
     pVal = PyObject_CallObject(pObjct, pArgs);
-    if (pVal != NULL) Py_XDECREF(pVal);
-    else PyErr_Print();
+    /*
+        if (pVal != NULL) Py_XDECREF(pVal);
+        else PyErr_Print();
+     */
     $$ while (0);
     PyErr_Print();
     return pVal;
@@ -220,10 +245,13 @@ void make_vector_from_pyobj(PyObject *pVal, float * vec, int cols) {
     PyObject* tmp_elem;
     float val = 0;
     for (int x = 0; x < cols; x++) $
-        tmp_elem = PyList_GetItem(pVal, x); // выбираем элемент из вектора		       
+        tmp_elem = PyList_GetItem(pVal, x); // выбираем элемент из вектора
+    incr(tmp_elem);
     val = (float) PyFloat_AsDouble(tmp_elem);
+    decr(tmp_elem);
     vec[x] = val;
     $$
+
 }
 
 void initiate_pyRandom_module() {
@@ -335,7 +363,7 @@ train(float *in, float *targ, int debug) {
 void
 predict(float* in, int debug) {
     /*
-     *  Работает с одним вектром
+     *  Работает с одним вектором
      */
     copy_vector(in, NN->inputs, max_in_nn);
     feedForwarding(true, debug);
@@ -348,7 +376,7 @@ feedForwarding(bool ok, int debug) {
             // для данного слоя получить то что отдал пред-слой
             // получаем отдачу слоя и передаем ее следующему  справа как аргумент
     for (int i = 1; i < NN->nlCount; i++) makeHidden(&NN->list[i], getHidden(&NN->list[i - 1]), debug);
-    if (ok) for (int out = 0; out < NN->outputNeurons; out++) printf("%d item val %f;", out + 1, NN->list[NN->nlCount - 1].hidden[out] /** koef_to_predict*/);
+    if (ok) for (int out = 0; out < NN->outputNeurons; out++) printf("%d item val %f;", out + 1, NN->list[NN->nlCount - 1].hidden[out] * koef_to_predict);
     else c(backPropagate(), "backPropagate()")
     }
 
@@ -527,11 +555,11 @@ float operations(int op, float a, float b, float c, int d, char* str) {
         }
         case INIT_W_HE:
         {
-            float r;
+            float r = 0;
             pVal = PyObject_CallMethod(pInstanceRandom, "gauss", "ii", 0, 1);
-            check_d(pVal, "operations INIT_W_HE", "pVal");
-            if (pVal != NULL) r = PyFloat_AsDouble(pVal), /*decr(pValue)*/ printf("r he:%f\n", r);
+            if (pVal != NULL) r = PyFloat_AsDouble(pVal), clear_pyObj(pVal), printf("r he:%f\n", r);
             else PyErr_Print();
+            decr(pVal);
             return r * sqrt(2 / a);
         }
         case X0:
