@@ -15,9 +15,11 @@ main.c
 Далее идет сериализация ленты матриц в файл.Скрипты лежат в src/python.
 Возможно тренировка и предсказание сети.
 Получить помощь:
+
 exe --help
 ----------
 Отсюда:
+
 Usage:
 
 To train:       exe -train <lr> <epochs> <script to train> <weights file to save> -debug
