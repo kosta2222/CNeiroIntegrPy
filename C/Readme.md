@@ -12,15 +12,18 @@ main.c
                                                                                         
 в ней также можно производить вычисление функций активаций и их производных и также отпечатывать отладочную
 информацию.Далее идет в этом модуле функция fit() - обучение системы.
-Далее идет сериализация ленты матриц в файл.
+Далее идет сериализация ленты матриц в файл.Скрипты лежат в src/python.
 Возможно тренировка и предсказание сети.
 Получить помощь:
-<exe> --help
+exe --help
+----------
 Отсюда:
 Usage:
 
-To train:       <exe> -train <lr> <epochs> <script to train> <weights file to save> -debug
-To predict:     <exe> -predict -direct|-backward <script to ask> <file with weights> -debug
+To train:       exe -train <lr> <epochs> <script to train> <weights file to save> -debug
+----------------------------------------------------------------------------------------
+To predict:     exe -predict -direct|-backward <script to ask> <file with weights> -debug
+-----------------------------------------------------------------------------------------
 
 Далее короче: 
 
