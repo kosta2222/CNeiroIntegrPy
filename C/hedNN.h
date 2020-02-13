@@ -19,7 +19,12 @@ extern "C" {
 #define max_rows_orOut	10
 #define max_am_layer 7
 #define max_am_epoch 25
-#define max_am_objMse max_am_epoch	
+#define max_am_objMse max_am_epoch
+
+typedef unsigned char u_char;
+#define max_stack_matrEl 256
+#define max_stack_otherOp 4
+#define bin_kernel_bufLen 256*3	
 
 	// Представляет из себя слой
 

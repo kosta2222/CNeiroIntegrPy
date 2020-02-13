@@ -2,7 +2,7 @@
 #include "hedPy.h"
 #include "utilMacr.h"
 //-----------------[Основные функции обучения]------------
-
+extern float koef_to_predict;
 void initiate_layers(int *network_map, int size) {
     int in = 0;
     int out = 0;
@@ -43,7 +43,7 @@ train(float *in, float *targ, int debug) {
 }
 
 void
-predict(float* in, int debug) {
+predict_direct(float* in, int debug) {
     /*
      *  Работает с одним вектором
      */
@@ -58,7 +58,9 @@ feedForwarding(bool ok, int debug) {
             // для данного слоя получить то что отдал пред-слой
             // получаем отдачу слоя и передаем ее следующему  справа как аргумент
     for (int i = 1; i < NN->nlCount; i++) makeHidden(&NN->list[i], getHidden(&NN->list[i - 1]), debug);
-    if (ok) for (int out = 0; out < NN->outputNeurons; out++) printf("%d item val %f;", out + 1, NN->list[NN->nlCount - 1].hidden[out] * koef_to_predict);
+    if (ok)$
+        for (int out = 0; out < NN->outputNeurons; out++)
+            printf("%d item val %f;", out + 1, NN->list[NN->nlCount - 1].hidden[out] * koef_to_predict);$$
     else backPropagate();
     }
 
