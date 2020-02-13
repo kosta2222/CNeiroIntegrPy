@@ -13,7 +13,6 @@ extern "C" {
 #include <stdlib.h>
 #include <math.h>
 #include <stdbool.h>
-#include "hedPy.h"
 
 #define max_in_nn 30
 #define max_trainSet_rows 200
@@ -105,11 +104,15 @@ extern "C" {
 	void copy_vector(float *src, float *dest, int n);
 	void copy_matrix(float *src, float *dest, int rows, int cols);
 	void initiate_layers(int *network_map, int len);
-	PyObject* do_custum_func(const char* func, PyObject * pArgs);
-	float py_float_to_float(PyObject* pVal);
 	void predict(float* in, int debug);
 	float operations(int op, float a, float b, float c, int d, char* str);
 	//----------------------------------------------------
+	whole_NN_params NN[1];
+	int epochs[max_am_epoch];
+	float object_mse[max_am_objMse];
+	int eps;
+	float koef_to_predict;
+	int debug;
 
 #ifdef __cplusplus
 }

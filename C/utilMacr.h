@@ -7,7 +7,6 @@
 
 #ifndef UTILMACR_H
 #define	UTILMACR_H
-int debug = -1;
 #define c(f,id){debug==DEBUG?printf("%s\n",id),f:f;} 
 
 #define for_in(from,to)\

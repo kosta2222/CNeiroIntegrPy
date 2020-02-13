@@ -7,16 +7,7 @@
 #ifndef HEDPY_H
 #define	HEDPY_H
 #include "Python.h"
-PyObject *pName = NULL, *pModule = NULL;
-PyObject *pDict = NULL, *pObjct = NULL, *pVal = NULL;
-PyObject* sys = NULL;
-PyObject* sys_path = NULL;
-PyObject* folder_path = NULL;
 
-PyObject* pDictRandom;
-PyObject* pClassRandom;
-PyObject* pInstanceRandom;
-PyObject* pModuleRandom;
 void py_init();
 PyObject *
 python_user_script(char *);
@@ -38,5 +29,9 @@ int get_tuple_sz(PyObject* pVal);
 PyObject* get_list_item(PyObject* pVal, int i);
 void incr(PyObject* ob);
 void decr(PyObject* ob);
+void clear_random();
+void clear_userModule();
+void clear_pyObj(PyObject* ob);
 void create_C_map_nn(PyObject * pVal, int *map_nn, int map_size);
+float py_float_to_float(PyObject* pVal);
 #endif	/* HEDPY_H */
