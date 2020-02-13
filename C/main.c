@@ -6,10 +6,6 @@
 #include <synchapi.h>
 float koef_to_predict = 0;
 int debug = -1;
-////------------------Основная структура ИНС--------------------
-// whole_NN_params NN[1];
-////------------------------------------------------------------
-
 //========[main функция]=============
 
 int main(int argc, char * argv[]) {
@@ -57,34 +53,21 @@ int main(int argc, char * argv[]) {
     tmp_cols = get_list_size(inner_list);
     cols_teach = tmp_cols;
     make_matrix_from_pyobj(pVal, Y, tmp_rows, cols_teach);
-    //	print_deb_matrix(Y, tmp_rows, cols_teach);
     // используем карту ИНС
     pVal = do_custum_func("get_map_nn", NULL);
     map_size = get_tuple_sz(pVal);
     create_C_map_nn(pVal, map_nn, map_size);
-    //    initiate_pyRandom_module();
     initiate_pyRandom_module();
-    //    initiate_layers(map_nn, map_size);
     initiate_layers(map_nn, map_size);
-    //	print_deb_matrix(Y, tmp_rows, cols_teach);
     //----------запускаем нейросеть----------
     fit(X, Y, tmp_rows, cols_train, cols_teach, eps, lr, debug);
     //---------------------------------------
     //		plot_grafik_from_C();
     clear_random();
-    /*
-        do_custum_func("del_objs", NULL);
-     */
     Sleep(3000);
     printf("Predict:\n");
     pVal = do_custum_func("get_ask_data", NULL);
-    //    check_d(pVal = do_custum_func("get_ask_data", NULL), "main", "pVal get_ask_data");
-    //    PyErr_Print();
-    /*
-        pVal=PyList_New(3);
-     */
     tmp_cols = get_list_size(pVal);
-
     make_vector_from_pyobj(pVal, X, tmp_cols);
     pVal = do_custum_func("get_x_max_as_koef", NULL);
     koef_to_predict = py_float_to_float(pVal);
