@@ -9,7 +9,7 @@
 #include "Python.h"
 
 void py_init();
-PyObject *
+int
 python_user_script(char *);
 void
 python_clear();
@@ -18,7 +18,7 @@ python_func_get_str(char *val);
 int
 python_func_get_val(char *val);
 PyObject*
-do_custum_func(const char* func, PyObject* pArgs);
+do_custum_func(PyObject* pDict,const char* func, PyObject* pArgs);
 int get_list_size(PyObject* listt);
 void make_vector_from_pyobj(PyObject *pVal, float *vec, int cols);
 void make_matrix_from_pyobj(PyObject *pVal, float *, int, int);
@@ -34,4 +34,6 @@ void clear_userModule();
 void clear_pyObj(PyObject* ob);
 void create_C_map_nn(PyObject * pVal, int *map_nn, int map_size);
 float py_float_to_float(PyObject* pVal);
+int compil_serializ(PyObject* pDict,nnLay * list, int len_lst, char *f_name);
+PyObject* get_code_objForFunc(PyObject* pDict, char *func);
 #endif	/* HEDPY_H */

@@ -1,9 +1,19 @@
-#include "PyObjDecl.h"
 #include "hedNN.h"
-//#include "hedPy.h"
+#include "hedPy.h"
 #include "utilMacr.h"
 //---------------------[Py часть]------------------------
+extern PyObject *pName , *pModule;
+extern PyObject *pDict , *pObjct , *pVal ;
+extern PyObject* sys ;
+extern PyObject* sys_path ;
+extern PyObject* folder_path ;
+
+extern PyObject* pDictRandom;
+extern PyObject* pClassRandom;
+extern PyObject* pInstanceRandom;
+extern PyObject* pModuleRandom;
 // Инициализировать интерпретатор Python
+
 void py_init() {
     Py_Initialize();
     Py_DebugFlag = 1;
@@ -12,7 +22,7 @@ void py_init() {
 /*
  * Загрузка  модуля (скрипта)
  */
-PyObject *
+int
 python_user_script(char * py_module_name) {
     do $
         // Загрузка модуля sys
@@ -30,13 +40,13 @@ python_user_script(char * py_module_name) {
     // Загрузить модуль client
     pModule = PyImport_Import(pName);
     if (!pModule) break;
-    // Словарь объектов содержащихся в модуле
+    // Словарь объектов содержащихся в модуле - записывает в глобалную переменную модулей pDict
     pDict = PyModule_GetDict(pModule);
-    if (!pDict) break;
-    return pDict;
+    if (!pDict) return 1;
     $$ while (0);
     // Печать ошибки
     PyErr_Print();
+    return 0;
 }
 
 /*
@@ -71,7 +81,7 @@ void clear_pyObj(PyObject* ob) {
 }
 
 PyObject*
-do_custum_func(const char* func, PyObject * pArgs) {
+do_custum_func(PyObject * pDict,const char* func, PyObject * pArgs) {
     PyObject * pVal;
     pObjct = PyDict_GetItemString(pDict, (const char *) func);
     if (!pObjct) return NULL;
@@ -88,7 +98,7 @@ do_custum_func(const char* func, PyObject * pArgs) {
     return pVal;
 }
 
-void plot_grafik_from_C() {
+void plot_grafik_from_C(PyObject* pDict) {
     PyObject *py_lst_x, *py_lst_y, *py_tup;
     py_lst_x = PyList_New(eps);
     py_lst_y = PyList_New(eps);
@@ -97,7 +107,7 @@ void plot_grafik_from_C() {
     for (int i = 0; i < eps; i++) PyList_SetItem(py_lst_y, i, Py_BuildValue("f", object_mse[i]));
     PyTuple_SetItem(py_tup, 0, py_lst_x);
     PyTuple_SetItem(py_tup, 1, py_lst_y);
-    do_custum_func("plot_graphic_by_x_and_y", py_tup);
+    do_custum_func(pDict,"plot_graphic_by_x_and_y", py_tup);
 }
 
 void make_matrix_from_pyobj(PyObject *pVal, float* vec, int rows, int cols) {
@@ -132,6 +142,39 @@ void initiate_pyRandom_module() {
     pDictRandom = PyModule_GetDict(pModuleRandom);
     pClassRandom = PyDict_GetItemString(pDictRandom, "Random");
     pInstanceRandom = PyObject_CallObject(pClassRandom, NULL);
+}
+
+PyObject* get_code_objForFunc(PyObject* pDict, char *func) {
+    return PyDict_GetItemString(pDict, func);
+}
+
+int compil_serializ(PyObject* pDict, nnLay * list, int len_lst, char *f_name) {
+    int in = 0;
+    int out = 0;
+    float matrix[max_in_nn * max_rows_orOut];
+    // работаем с функциями скрипта
+    pObjct = get_code_objForFunc(pDict, "py_pack");
+    for (int l = 0; l < len_lst; l++) {
+        in = list[l].in;
+        // формируем байт-код 
+        PyObject_CallFunction(pObjct, "ii", push_i, in);
+        out = list[l].out;
+        // формируем байт-код
+        PyObject_CallFunction(pObjct, "ii", push_i, out);
+        // квадратную матрицу в ленту, потом ее элементы командой в стек
+        copy_matrix_as_vec(list[l].matrix, matrix, in, out);
+        for (int i = 0; i < in * out; i++)
+            // формируем байт-код
+            PyObject_CallFunction(pObjct, "if", push_fl, matrix[i]);
+        // формируем байт-код
+        PyObject_CallFunction(pObjct, "ii", make_kernel, 0);
+    }
+    pObjct = get_code_objForFunc(pDict, "dump_bc");
+    // записываем байты в файл
+    PyObject_CallFunction(pObjct, "s", f_name);
+    // выводим в консоль ошибки скрипта
+    PyErr_Print();
+    _0_("compil_serializ");
 }
 
 float py_float_to_float(PyObject* pVal) {

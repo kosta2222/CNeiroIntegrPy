@@ -33,12 +33,12 @@ extern "C" {
 	} nnLay;
 
 	typedef struct {
-		nnLay list[15];
+		nnLay list[max_am_layer];
 		int inputNeurons; // количество выходных нейронов
 		int outputNeurons; // количество входных нейронов
 		int nlCount; // количество слоев
-		float inputs[10];
-		float targets[10];
+		float inputs[max_in_nn];
+		float targets[max_rows_orOut];
 		float lr; // коэффициент обучения
 	} whole_NN_params;
 
@@ -56,6 +56,15 @@ extern "C" {
 		DEBUG,
 		X0
 	} OPS;
+	
+	// байт-коды-загрузка входов/выходов,загрузка элементов матрицы,сворачивание то есть создания ядра,остановка ВМ
+
+	typedef enum {
+		push_i,
+		push_fl,
+		make_kernel,
+		stop
+	};
 	//------------------прототипы для обучения-----------------
 	float
 	sigmoida(float val);
