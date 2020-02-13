@@ -22,10 +22,10 @@ exe --help
 
 Usage:
 
-To train:       exe -train <lr> <epochs> <script to train> <weights file to save> -debug
+To train:       exe -train @lr @epochs @script_to_train @weights_file_to_save -debug
 ----------------------------------------------------------------------------------------
-To predict:     exe -predict -direct|-backward <script to ask> <file with weights> -debug
------------------------------------------------------------------------------------------
+To predict:     exe -predict -direct|-backward @script_to_ask @file_with_weights -debug
+----------------------------------------------------------------------------------------
 
 Далее короче: 
 
