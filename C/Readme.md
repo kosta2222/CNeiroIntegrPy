@@ -1,3 +1,5 @@
+Сеть обучения и предсказания, скриптуемая через интерпретатор Python
+
 Обзор что делает код:
 
 main.c
@@ -55,3 +57,13 @@ WorkWiArr.c
 DeserializAnCreateNetFunc.c 
 ===========================
 Десериализация ленты матриц из файла
+
+Тестировалась на Windows 7 Домашняя базовая SP1
+CPU AMD 2.10 GHz
+RAM 4.00 Gb
+Интерпретатор Python3.7.3 (build MSVS v.1916 32b (Intel))
+Build программы mingw32(система Msys2)
+
+13/02/2020 20:50
+
+Лицензия(Copyright) Muhamedjanov Konstantin Kotibovich.Программа "As Is" .
