@@ -51,7 +51,7 @@ def dump_bc(f_name):
         f.write(i)
 
 # learn xor
-ask_vector=[0,1]
+ask_vector=[1,1]
 x_max=1
 
 x=[[1,1],[1,0],[0,1],[0,0] ]
@@ -63,6 +63,12 @@ def get_data_x():
   return x
 
 def get_data_y():
+  return y
+
+def get_data_x_test():
+  return x
+
+def get_data_y_test():
   return y
 
 def get_map_nn():

@@ -27,7 +27,7 @@ int main(int argc, char * argv[]) {
     if (!strcmp("--help", argv[1])) {
         printf("Usage:\nTo train:\t<exe> -train <lr> <epochs> <script to train> <weights file to save> -debug\n");
         printf("To predict:\t<exe> -predict -direct|-bacward <script to ask> <file with weights> -debug\n");
-    }        // получить аргументы из коммандной строки
+    }// получить аргументы из коммандной строки
     else if (!strcmp(argv[1], "-train") && argc == 7) {
         lr = (float) atof(argv[2]);
         eps = atoi(argv[3]);
@@ -36,7 +36,8 @@ int main(int argc, char * argv[]) {
         script = argv[4];
         if (python_user_script(script) != 0) $
             puts("python_init error");
-        return -1;$$
+        return -1;
+        $$
         //----------Загрузим матрицы из скрипта---------
         /*
          *  Узнаем количество рядов и колонок из скрипта
@@ -73,18 +74,32 @@ int main(int argc, char * argv[]) {
         // сохраняем модель
         compil_serializ(pDict, NN->list, NN->nlCount, weight_file);
         //
-        printf("Predict:\n");
-        pVal = do_custum_func(pDict, "get_ask_data", NULL);
-        tmp_cols = get_list_size(pVal);
-        make_vector_from_pyobj(pVal, X, tmp_cols);
-        pVal = do_custum_func(pDict, "get_x_max_as_koef", NULL);
-        koef_to_predict = py_float_to_float(pVal);
-        printf("koef to pred %f\n",koef_to_predict);
-        predict_direct(X, debug);
+        //        printf("Predict:\n");
+        //        pVal = do_custum_func(pDict, "get_ask_data", NULL);
+        //        tmp_cols = get_list_size(pVal);
+        //        make_vector_from_pyobj(pVal, X, tmp_cols);
+        //        pVal = do_custum_func(pDict, "get_x_max_as_koef", NULL);
+        //        koef_to_predict = py_float_to_float(pVal);
+        //        printf("koef to pred %f\n",koef_to_predict);
+        //        predict_direct(X, debug);
         //
+        printf("Cross validation\n");
+        pVal = do_custum_func(pDict, "get_data_x_test", NULL);
+        tmp_rows = get_list_size(pVal);
+        inner_list = get_list_item(pVal, 0);
+        tmp_cols = get_list_size(inner_list);
+        cols_train = tmp_cols;
+        make_matrix_from_pyobj(pVal, X, tmp_rows, cols_train);
+        pVal = do_custum_func(pDict, "get_data_y_test", NULL);
+        tmp_rows = get_list_size(pVal);
+        inner_list = get_list_item(pVal, 0);
+        tmp_cols = get_list_size(inner_list);
+        cols_teach = tmp_cols;
+        make_matrix_from_pyobj(pVal, Y, tmp_rows, cols_teach);
+        cross_validation(X,Y,tmp_rows,cols_train,cols_teach);
         clear_userModule();
         python_clear();
-       
+
     } else if (!strcmp(argv[1], "-predict") && argc == 6) {
         script = argv[3];
         if (python_user_script(script) != 0) $
@@ -100,7 +115,7 @@ int main(int argc, char * argv[]) {
         make_vector_from_pyobj(pVal, X, tmp_cols);
         pVal = do_custum_func(pDict, "get_x_max_as_koef", NULL);
         koef_to_predict = py_float_to_float(pVal);
-        printf("koef to pred %f\n",koef_to_predict);
+        printf("koef to pred %f\n", koef_to_predict);
         predict_direct(X, debug);
     }
 

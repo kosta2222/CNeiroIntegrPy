@@ -16,6 +16,7 @@ extern "C" {
 
 #define max_in_nn 30
 #define max_trainSet_rows 200
+#define max_validSet_rows 50	
 #define max_rows_orOut	10
 #define max_am_layer 7
 #define max_am_epoch 25
