@@ -67,9 +67,9 @@ float operations(int op, float a, float b, float c, int d, char* str) {
             decr(pVal);
             return r * sqrt(2 / a);
         }
-        case X0:
+        case DEBUG_STR:
         {
-            if (d == 0) printf("Null pointer exception-%s\n", str);
+           printf("%s\n",str);
 
         }
     }

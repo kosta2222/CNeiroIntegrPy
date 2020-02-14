@@ -21,7 +21,7 @@ extern "C" {
 #define max_am_epoch 25
 #define max_am_objMse max_am_epoch
 
-typedef unsigned char u_char;
+	typedef unsigned char u_char;
 #define max_stack_matrEl 256
 #define max_stack_otherOp 4
 #define bin_kernel_bufLen 256*3	
@@ -59,9 +59,9 @@ typedef unsigned char u_char;
 		INIT_W_HE,
 		INIT_W_GLOROT,
 		DEBUG,
-		X0
+		DEBUG_STR
 	} OPS;
-	
+
 	// байт-коды-загрузка входов/выходов,загрузка элементов матрицы,сворачивание то есть создания ядра,остановка ВМ
 
 	typedef enum {
@@ -116,9 +116,12 @@ typedef unsigned char u_char;
 	float
 	getMinimalSquareError(float *out_nn, float* teacher_answ, int size_vec);
 	void copy_vector(float *src, float *dest, int n);
-	void copy_matrix(float *src, float *dest, int rows, int cols);
+	void copy_matrixAsRibons(float *src, float *dest, int rows, int cols);
+	void print_deb_matrixAsRibon(float *vec, int rows, int cols, char * label);
+	void print_deb_vector(float *vec, int cols, char * label);
+	int copy_matrixAsStaticSquare_toRibon(float src[][max_in_nn], float *dest, int in, int out);
 	void initiate_layers(int *network_map, int len);
-	void predict(float* in, int debug);
+	void predict_direct(float* in, int debug);
 	float operations(int op, float a, float b, float c, int d, char* str);
 	//----------------------------------------------------
 	whole_NN_params NN[1];

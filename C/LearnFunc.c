@@ -35,8 +35,10 @@ train(float *in, float *targ, int debug) {
     /*
      *  Работает с рядом из матриц X и Y
      */
-    copy_vector(in, NN->inputs, max_in_nn);
-    copy_vector(targ, NN->targets, max_rows_orOut);
+    copy_vector(in, NN->inputs, NN->inputNeurons);
+    copy_vector(targ, NN->targets, NN->outputNeurons);
+    print_deb_vector(NN->inputs,NN->inputNeurons,"train NN->inputs");
+    print_deb_vector(NN->targets,NN->outputNeurons,"train NN->targets");
     feedForwarding(false, debug);
 
 
@@ -47,7 +49,10 @@ predict_direct(float* in, int debug) {
     /*
      *  Работает с одним вектором
      */
-    copy_vector(in, NN->inputs, max_in_nn);
+    copy_vector(in, NN->inputs, NN->inputNeurons);
+    printf("NN->inputNeurons:%d\n",NN->inputNeurons);
+    printf("NN->outpuNeurons:%d\n",NN->outputNeurons);
+    print_deb_vector(NN->inputs,NN->inputNeurons,"NN->inputNeurons");
     feedForwarding(true, debug);
 }
 
@@ -108,7 +113,7 @@ makeHidden(nnLay *curLay, float *inputs, int debug) {
         curLay->cost_signals[row] = tmpS, val = relu(tmpS), curLay->hidden[row] = val, operations(debug, curLay->cost_signals[row], 0, 0, 0, "cost signals");
         tmpS = 0;
     }
-    operations(debug, 0, 0, 0, 0, "make hidden made");
+    operations(DEBUG_STR, 0, 0, 0, 0, "make hidden made");
 }
 
 float *
@@ -145,10 +150,12 @@ getEssentialGradients(nnLay *curLay) {
 
 float
 getMinimalSquareError(float *out_nn, float* teacher_answ, int size_vec) {
+    print_deb_vector(out_nn,size_vec,"in getMse out_nn");
+    print_deb_vector(teacher_answ,size_vec,"in getMse Y");
     float sum = 0;
     float square = 0;
     float mean = 0;
-    for (int row = 0, sum = 0; row < size_vec; row++) sum += out_nn[row] - teacher_answ[row];
+    for (int col = 0; col < size_vec; col++) sum += out_nn[col] - teacher_answ[col];
     square = pow(sum, 2);
     mean = square / size_vec;
     return mean;

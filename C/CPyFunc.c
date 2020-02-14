@@ -162,7 +162,7 @@ int compil_serializ(PyObject* pDict, nnLay * list, int len_lst, char *f_name) {
         // формируем байт-код
         PyObject_CallFunction(pObjct, "ii", push_i, out);
         // квадратную матрицу в ленту, потом ее элементы командой в стек
-        copy_matrix_as_vec(list[l].matrix, matrix, in, out);
+        copy_matrixAsStaticSquare_toRibon(list[l].matrix, matrix, in, out);
         for (int i = 0; i < in * out; i++)
             // формируем байт-код
             PyObject_CallFunction(pObjct, "if", push_fl, matrix[i]);

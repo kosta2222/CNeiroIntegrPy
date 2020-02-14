@@ -72,6 +72,16 @@ int main(int argc, char * argv[]) {
         clear_random();
         // сохраняем модель
         compil_serializ(pDict, NN->list, NN->nlCount, weight_file);
+        //
+        printf("Predict:\n");
+        pVal = do_custum_func(pDict, "get_ask_data", NULL);
+        tmp_cols = get_list_size(pVal);
+        make_vector_from_pyobj(pVal, X, tmp_cols);
+        pVal = do_custum_func(pDict, "get_x_max_as_koef", NULL);
+        koef_to_predict = py_float_to_float(pVal);
+        printf("koef to pred %f\n",koef_to_predict);
+        predict_direct(X, debug);
+        //
         clear_userModule();
         python_clear();
        

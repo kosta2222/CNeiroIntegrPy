@@ -47,8 +47,6 @@ int vm(nnLay *list, u_char *bin_buf) {
                 make_kernel_f(list, n_lay, matrix_el_st, ops_st, sp_op);
                 // переходим к следующему индексу ядра
                 n_lay++;
-                // находим количество входов
-                if(n_lay==0) NN->inputNeurons=ops_st[sp_op-1];
                 // зачищаем стеки
                 sp_op = -1;
                 sp_ma = -1;
@@ -61,6 +59,8 @@ int vm(nnLay *list, u_char *bin_buf) {
     }
     // также подсчитаем сколько у наc ядер
     NN->nlCount = n_lay;
+    // находим количество входов
+    NN->inputNeurons=(NN->list[0].in)-1;// -1 зависит от биасов
     // находим количество выходов когда образовали сеть
     NN->outputNeurons=NN->list[NN->nlCount-1].out;
     _0_("vm");
