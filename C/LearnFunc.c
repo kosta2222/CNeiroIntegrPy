@@ -37,7 +37,7 @@ train(float *in, float *targ, int debug) {
      */
     copy_vector(in, NN->inputs, NN->inputNeurons);
     copy_vector(targ, NN->targets, NN->outputNeurons);
-    print_deb_vector(NN->inputs,NN->inputNeurons,"train NN->inputs");
+    print_deb_vector(NN->inputs,NN->inputNeurons,"in train NN->inputs");
     print_deb_vector(NN->targets,NN->outputNeurons,"train NN->targets");
     feedForwarding(false, debug);
 
@@ -50,9 +50,7 @@ predict_direct(float* in, int debug) {
      *  Работает с одним вектором
      */
     copy_vector(in, NN->inputs, NN->inputNeurons);
-    printf("NN->inputNeurons:%d\n",NN->inputNeurons);
-    printf("NN->outpuNeurons:%d\n",NN->outputNeurons);
-    print_deb_vector(NN->inputs,NN->inputNeurons,"NN->inputNeurons");
+    print_deb_vector(NN->inputs,NN->inputNeurons,"in predict_direct NN->inputs");
     feedForwarding(true, debug);
 }
 
@@ -65,7 +63,9 @@ feedForwarding(bool ok, int debug) {
     for (int i = 1; i < NN->nlCount; i++) makeHidden(&NN->list[i], getHidden(&NN->list[i - 1]), debug);
     if (ok)$
         for (int out = 0; out < NN->outputNeurons; out++)
-            printf("%d item val %f;", out + 1, NN->list[NN->nlCount - 1].hidden[out] * koef_to_predict);$$
+            printf("%d item val %f;", out + 1, NN->list[NN->nlCount - 1].hidden[out] * koef_to_predict);
+            nl;  
+        $$    
     else backPropagate();
     }
 
@@ -80,13 +80,6 @@ getOutCount(nnLay *curLay) {
 
     return curLay->out;
 }
-
-//float *
-//getMatrix(nnLay *curLay) {
-//        float matrix[(curLay->out)*(curLay->in)];
-//	copy_matrix(matrix,curLay->matrix,curLay->out,curLay->in);
-//	return matrix;
-//}
 
 void
 updMatrix(nnLay *curLay, float *enteredVal) {

@@ -29,9 +29,22 @@ void print_deb_vector(float *vec, int cols, char * label) {
     nl;
 }
 
+void print_deb_vectorInt(int *vec, int cols, char * label) {
+    printf("%s:\n", label);
+    lbr;
+    for (int i = 0; i < cols; i++)
+        printf("%d ", vec[i]);
+    rbr;
+    nl;
+}
+
 int copy_matrixAsStaticSquare_toRibon(float src[][max_in_nn], float *dest, int in, int out) {
     for (int row = 0; row < out; row++)
         for (int elem = 0; elem < in; elem++)
             dest[row * in + elem] = src[row][elem];
     _0_("copy_matrix_as_vec");
+}
+
+int len_of_vecInt(int * vec){
+    return sizeof(vec) / sizeof (int);
 }

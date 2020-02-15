@@ -29,6 +29,6 @@ printf("in func->%s\n",func);printf("var->%s\n",var);
 #define ne0 printf ("Null error\n")
 #define check_d(r,func,var) if(r==0) {lbr;md0;_e_(func,var);rbr;}
 #define check_s(i,max_buf,func,var) if(i>max_buf){lbr;ms0;_e_(func,var);rbr;}
-#define is_null_ptrErr(op,func,var) if(op==0) {lbr;ne0;_e_(func,var);rbr;}
+#define is_null_ptrErr(op,func,var) if(op==NULL) {lbr;ne0;_e_(func,var);rbr;exit(-10);}
 #endif	/* UTILMACR_H */
 
