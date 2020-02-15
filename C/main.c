@@ -4,8 +4,7 @@
 #include "PyObjDecl.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-////#include <synchapi.h>
+//#include <synchapi.h>
 //float koef_to_predict = 0;
 //int debug = -1;
 whole_NN_params NN[1];
@@ -28,7 +27,6 @@ int main(int argc, char * argv[]) {
     int cols_train = 0;
     float lr = 0.07;
     int map_size = 0;
-    int epoch_vec_sz=0;
     char * script = "";
     char * weight_file = "";
     py_init();
@@ -43,8 +41,8 @@ int main(int argc, char * argv[]) {
         weight_file = argv[5];
         if (!strcmp("-debug", argv[6])) debug = DEBUG;
         script = argv[4];
-        if (python_user_script(script) != 0) $
-            puts("python_init error");
+        if (python_user_scriptDict(script)) $
+            puts("get user module error");
             return -1;
             $$
         //----------Загрузим матрицы из скрипта---------
@@ -78,12 +76,7 @@ int main(int argc, char * argv[]) {
         //----------настраиваем систему-----------------------------
         fit(X, Y, tmp_rows, cols_train, cols_teach, eps, lr, debug);
         //----------------------------------------------------------
-        // Строим график если епох 2 или более
-        epoch_vec_sz=len_of_vecInt(epochs);
-        if (epoch_vec_sz>1) plot_grafik_from_C(pDict);
         clear_random();
-        // сохраняем модель
-        compil_serializ(pDict, NN->list, NN->nlCount, weight_file);
         printf("Cross validation\n");
         pVal = do_custum_func(pDict, "get_data_x_test", NULL);
         tmp_rows = get_list_size(pVal);
@@ -98,13 +91,26 @@ int main(int argc, char * argv[]) {
         cols_teach = tmp_cols;
         make_matrix_from_pyobj(pVal, Y, tmp_rows, cols_teach);
         cross_validation(X,Y,tmp_rows,cols_train,cols_teach);
+        printf("plot\n");
+        if (python_user_scriptDict("plot")) $
+            puts("get user module error");
+            return -1;
+            $$
+        plot_grafik_from_C(pDict,epochs,eps,object_mse);
+        printf("serialize\n");    
+        // сохраняем модель
+        if (python_user_scriptDict("serial")) $
+            puts("get user module error");
+            return -1;
+            $$
+        compil_serializ(pDict, NN->list, NN->nlCount, weight_file);
         clear_userModule();
         python_clear();
         $$
     else if (!strcmp(argv[1], "-predict") && argc == 6)$
         script = argv[3];
-        if (python_user_script(script) != 0) $
-            puts("python_init error");
+        if (python_user_scriptDict(script)) $
+            puts("get user module error");
             return -1;
             $$
         if (!strcmp("-debug", argv[5])) debug = DEBUG;

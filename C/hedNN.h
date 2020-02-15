@@ -79,7 +79,7 @@ extern "C" {
 	void
 	backPropagate();
 	void
-	feedForwarding(u_char ok, int debug);
+	feedForwarding(bool ok, int debug);
 	void
 	train(float *in, float *targ, int debug);
 	void
@@ -125,8 +125,6 @@ extern "C" {
 	void predict_direct(float* in, int debug);
 	float operations(int op, float a, float b, float c, int d, char* str);
 	//----------------------------------------------------
-
-
 #ifdef __cplusplus
 }
 #endif

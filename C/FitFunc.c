@@ -26,12 +26,11 @@ fit(float *X, float *Y, int rows, int cols_train, int cols_teach, int eps, float
              print_deb_vector(Y,NN->outputNeurons,"in fit Y");
              mse_after_oneVector = getMinimalSquareError(getHidden(&NN->list[NN->nlCount - 1]), Y, NN->outputNeurons);
              printf("mse: %f\n", mse_after_oneVector);
-             
              $$
         /*
          *  Все векторы из пакета отдали, запишем последнюю ошибку
         */
-        if (mse_after_oneVector == 0) goto out_bach;             
+//        if (mse_after_oneVector == 0) goto out_bach;             
         object_mse[epocha] = mse_after_oneVector;
         epochs[epocha] = epocha;
         epocha++;

@@ -1,9 +1,11 @@
+//#include "LearnFunc.h"
 #include "hedNN.h"
 #include "hedPy.h"
 #include "utilMacr.h"
+#include <stdbool.h>
 extern whole_NN_params NN[1];
-//-----------------[Основные функции обучения]------------
 extern float koef_to_predict;
+//-----------------[Основные функции обучения]------------
 void initiate_layers(int *network_map, int size) {
     int in = 0;
     int out = 0;
@@ -51,7 +53,7 @@ predict_direct(float* in, int debug) {
      */
     copy_vector(in, NN->inputs, NN->inputNeurons);
     print_deb_vector(NN->inputs,NN->inputNeurons,"in predict_direct NN->inputs");
-    feedForwarding(1, debug);
+    feedForwarding(true, debug);
 }
 
 // Функция для кроссвалидации
@@ -62,18 +64,18 @@ predict_direct_CV(float* in, int debug) {
      */
     copy_vector(in, NN->inputs, NN->inputNeurons);
     print_deb_vector(NN->inputs,NN->inputNeurons,"in predict_direct NN->inputs");
-    feedForwarding(0, debug);
+    feedForwarding(false, debug);
 }
 
 
 void
-feedForwarding(u_char ok, int debug) {
+feedForwarding(bool ok, int debug) {
     // если ok = true - обучаемся, перед этим выполним один проход по сети
     makeHidden(&NN->list[0], NN->inputs, debug);
     // для данного слоя получить то что отдал пред-слой
     // получаем отдачу слоя и передаем ее следующему  справа как аргумент
     for (int i = 1; i < NN->nlCount; i++) makeHidden(&NN->list[i], getHidden(&NN->list[i - 1]), debug);
-    if (ok==1)$
+    if (ok)$
         for (int out = 0; out < NN->outputNeurons; out++)
             printf("%d item val %f;", out + 1, NN->list[NN->nlCount - 1].hidden[out] * koef_to_predict);
             nl;  
@@ -101,7 +103,7 @@ updMatrix(nnLay *curLay, float *enteredVal) {
 
 void
 setIO(nnLay *curLay, int inputs, int outputs) {
-    /* сенсоры - входа*/curLay->in = inputs + 1;
+    /* сенсоры - входа*/curLay->in = inputs ;
     /* данный ряд нейронов */curLay->out = outputs;
     for (int row = 0; row < curLay->out; row++)for (int elem = 0; elem < curLay->in; elem++)printf("operations\n"), curLay->matrix[row][elem] = operations(INIT_W_HE, curLay->in, 0, 0, 0, "");
 
@@ -113,8 +115,8 @@ makeHidden(nnLay *curLay, float *inputs, int debug) {
     float val = 0;
     for (int row = 0; row < curLay->out; row++) {
         for (int elem = 0; elem < curLay->in; elem++)
-            if (elem == 0) tmpS += curLay->matrix[row][0];
-            else tmpS += curLay->matrix[row][elem] * inputs[elem];
+//            if (elem == 0) tmpS += curLay->matrix[row][0];
+            /*else*/ tmpS += curLay->matrix[row][elem] * inputs[elem];
         curLay->cost_signals[row] = tmpS, val = relu(tmpS), curLay->hidden[row] = val, operations(debug, curLay->cost_signals[row], 0, 0, 0, "cost signals");
         tmpS = 0;
     }

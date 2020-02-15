@@ -24,11 +24,10 @@ int vm(nnLay *list, u_char *bin_buf) {
     op = bin_buf[ip];
     while (op != stop) {
         switch (op) {
-                // загружаем на стек количество входов и выходов ядра
+            // загружаем на стек количество входов и выходов ядра
             case push_i:
             {
                 ops_st[++sp_op] = bin_buf[++ip];
-                nl;
                 break;
             }
                 // загружаем на стек элементы матриц
@@ -42,8 +41,6 @@ int vm(nnLay *list, u_char *bin_buf) {
                 // создаем одно ядро в массиве
             case make_kernel:
             {
-                printf("print steck in vm in push_fl\n");
-                for (int i = 0; i < 6; i++) printf("matrix el:%f", matrix_el_st[i]);
                 make_kernel_f(list, n_lay, matrix_el_st, ops_st, sp_op);
                 // переходим к следующему индексу ядра
                 n_lay++;
