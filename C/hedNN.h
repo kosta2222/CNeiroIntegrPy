@@ -79,7 +79,7 @@ extern "C" {
 	void
 	backPropagate();
 	void
-	feedForwarding(bool ok, int debug);
+	feedForwarding(u_char ok, int debug);
 	void
 	train(float *in, float *targ, int debug);
 	void
@@ -125,12 +125,7 @@ extern "C" {
 	void predict_direct(float* in, int debug);
 	float operations(int op, float a, float b, float c, int d, char* str);
 	//----------------------------------------------------
-	whole_NN_params NN[1];
-	int epochs[max_am_epoch];
-	float object_mse[max_am_objMse];
-	int eps;
-	float koef_to_predict;
-	int debug;
+
 
 #ifdef __cplusplus
 }

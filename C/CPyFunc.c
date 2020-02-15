@@ -12,8 +12,11 @@ extern PyObject* pDictRandom;
 extern PyObject* pClassRandom;
 extern PyObject* pInstanceRandom;
 extern PyObject* pModuleRandom;
-// Инициализировать интерпретатор Python
 
+extern int epochs[max_am_epoch];
+extern float object_mse[max_am_objMse];
+extern int eps;
+// Инициализировать интерпретатор Python
 void py_init() {
     Py_Initialize();
     Py_DebugFlag = 1;

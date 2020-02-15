@@ -1,6 +1,9 @@
 #include "hedNN.h"
 #include "hedPy.h"
 #include "utilMacr.h"
+extern whole_NN_params NN[1];
+extern int epochs[max_am_epoch];
+extern float object_mse[max_am_objMse];
 //---------------------[Fit Инс]--------------------------
 void
 fit(float *X, float *Y, int rows, int cols_train, int cols_teach, int eps, float lr, int debug) {

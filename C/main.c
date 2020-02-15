@@ -4,9 +4,16 @@
 #include "PyObjDecl.h"
 #include <stdio.h>
 #include <stdlib.h>
-//#include <synchapi.h>
-float koef_to_predict = 0;
-int debug = -1;
+#include <stdbool.h>
+////#include <synchapi.h>
+//float koef_to_predict = 0;
+//int debug = -1;
+whole_NN_params NN[1];
+int epochs[max_am_epoch];
+float object_mse[max_am_objMse];
+int eps;
+float koef_to_predict;
+int debug;
 //========[main функция]=============
 
 int main(int argc, char * argv[]) {
@@ -127,6 +134,8 @@ int main(int argc, char * argv[]) {
         koef_to_predict = py_float_to_float(pVal);
         printf("koef to pred %f\n", koef_to_predict);
         predict_direct(X, debug);
+        clear_userModule();
+        python_clear();
         $$
 
 

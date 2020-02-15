@@ -1,6 +1,7 @@
 #include "hedNN.h"
 #include "hedPy.h"
 #include "utilMacr.h"
+extern whole_NN_params NN[1];
 //-----------------[Основные функции обучения]------------
 extern float koef_to_predict;
 void initiate_layers(int *network_map, int size) {
@@ -9,7 +10,6 @@ void initiate_layers(int *network_map, int size) {
     NN->nlCount = size - 1;
     NN->inputNeurons = network_map[0];
     NN->outputNeurons = network_map[NN->nlCount];
-    //    setIO(&NN->list[0], network_map[0], network_map[1]);
     setIO(&NN->list[0], network_map[0], network_map[1]);
     for (int i = 2; i <= NN->nlCount; i++)
         in = network_map[i - 1], out = network_map[i], setIO(&NN->list[i - 1], in, out), printf("in: %d \t out:%d\n", in, out);
@@ -39,7 +39,7 @@ train(float *in, float *targ, int debug) {
     copy_vector(targ, NN->targets, NN->outputNeurons);
     print_deb_vector(NN->inputs,NN->inputNeurons,"in train NN->inputs");
     print_deb_vector(NN->targets,NN->outputNeurons,"train NN->targets");
-    feedForwarding(false, debug);
+    feedForwarding(0, debug);
 
 
 }
@@ -51,17 +51,29 @@ predict_direct(float* in, int debug) {
      */
     copy_vector(in, NN->inputs, NN->inputNeurons);
     print_deb_vector(NN->inputs,NN->inputNeurons,"in predict_direct NN->inputs");
-    feedForwarding(true, debug);
+    feedForwarding(1, debug);
 }
 
+// Функция для кроссвалидации
+void 
+predict_direct_CV(float* in, int debug) {
+    /*
+     *  Работает с одним вектором
+     */
+    copy_vector(in, NN->inputs, NN->inputNeurons);
+    print_deb_vector(NN->inputs,NN->inputNeurons,"in predict_direct NN->inputs");
+    feedForwarding(0, debug);
+}
+
+
 void
-feedForwarding(bool ok, int debug) {
+feedForwarding(u_char ok, int debug) {
     // если ok = true - обучаемся, перед этим выполним один проход по сети
     makeHidden(&NN->list[0], NN->inputs, debug);
-            // для данного слоя получить то что отдал пред-слой
-            // получаем отдачу слоя и передаем ее следующему  справа как аргумент
+    // для данного слоя получить то что отдал пред-слой
+    // получаем отдачу слоя и передаем ее следующему  справа как аргумент
     for (int i = 1; i < NN->nlCount; i++) makeHidden(&NN->list[i], getHidden(&NN->list[i - 1]), debug);
-    if (ok)$
+    if (ok==1)$
         for (int out = 0; out < NN->outputNeurons; out++)
             printf("%d item val %f;", out + 1, NN->list[NN->nlCount - 1].hidden[out] * koef_to_predict);
             nl;  
