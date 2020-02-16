@@ -3,6 +3,7 @@
 #include "hedPy.h"
 #include "utilMacr.h"
 #include <stdbool.h>
+
 extern whole_NN_params NN[1];
 extern float koef_to_predict;
 //-----------------[Основные функции обучения]------------
@@ -103,7 +104,7 @@ updMatrix(nnLay *curLay, float *enteredVal) {
 
 void
 setIO(nnLay *curLay, int inputs, int outputs) {
-    /* сенсоры - входа*/curLay->in = inputs ;
+    /* сенсоры - входа*/curLay->in = inputs + 1;
     /* данный ряд нейронов */curLay->out = outputs;
     for (int row = 0; row < curLay->out; row++)for (int elem = 0; elem < curLay->in; elem++)printf("operations\n"), curLay->matrix[row][elem] = operations(INIT_W_HE, curLay->in, 0, 0, 0, "");
 
@@ -113,13 +114,16 @@ void
 makeHidden(nnLay *curLay, float *inputs, int debug) {
     float tmpS = 0;
     float val = 0;
-    for (int row = 0; row < curLay->out; row++) {
+    for (int row = 0; row < curLay->out; row++)$
         for (int elem = 0; elem < curLay->in; elem++)
-//            if (elem == 0) tmpS += curLay->matrix[row][0];
-            /*else*/ tmpS += curLay->matrix[row][elem] * inputs[elem];
-        curLay->cost_signals[row] = tmpS, val = relu(tmpS), curLay->hidden[row] = val, operations(debug, curLay->cost_signals[row], 0, 0, 0, "cost signals");
+           if (elem == 0) tmpS += curLay->matrix[row][0];
+           else tmpS += curLay->matrix[row][elem] * inputs[elem];
+        curLay->cost_signals[row] = tmpS;
+        val =operations(RELU,tmpS,0,0,0,"");
+        curLay->hidden[row] = val; 
+        operations(debug, curLay->cost_signals[row], 0, 0, 0, "cost signals");
         tmpS = 0;
-    }
+        $$
     operations(DEBUG_STR, 0, 0, 0, 0, "make hidden made");
 }
 
@@ -137,17 +141,22 @@ getHidden(nnLay *curLay) {
 
 void
 calcOutError(nnLay *curLay, float *targets) {
-    for (int row = 0; row < curLay->out; row++, curLay->errors[row] = (curLay->hidden[row] - targets[row]) * derivateRelu(curLay->cost_signals[row]));
+    for (int row = 0; row < curLay->out; row++)
+        curLay->errors[row] = (curLay->hidden[row] - targets[row]) * operations(RELU_DERIV,curLay->cost_signals[row],0,0,0,"");
 }
 
 void
 calcHidError(nnLay *curLay, float *essential_gradients, float *enteredVals) {
-    for (int elem = 0; elem < curLay->in; elem++) for (int row = 0; row < curLay->out; row++, curLay->errors[elem] += essential_gradients[row] * curLay->matrix[row][elem] * derivateRelu(enteredVals[elem]));
+    for (int elem = 0; elem < curLay->in; elem++) 
+        for (int row = 0; row < curLay->out; row++)
+            curLay->errors[elem] += essential_gradients[row] * curLay->matrix[row][elem] * operations(RELU_DERIV,enteredVals[elem],0,0,0,"");
 }
 
 void
 calcHidZeroLay(nnLay* zeroLay, float * essential_gradients) {
-    for (int elem = 0; elem < zeroLay->in; elem++) for (int row = 0; row < zeroLay->out; row++) zeroLay->errors[elem] += essential_gradients[row] * zeroLay->matrix[row][elem];
+    for (int elem = 0; elem < zeroLay->in; elem++) 
+        for (int row = 0; row < zeroLay->out; row++) 
+            zeroLay->errors[elem] += essential_gradients[row] * zeroLay->matrix[row][elem];
 }
 
 float*

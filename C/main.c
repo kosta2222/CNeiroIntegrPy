@@ -19,6 +19,8 @@ int main(int argc, char * argv[]) {
     int eps = 25;
     float X[max_in_nn * max_trainSet_rows];
     float Y[max_rows_orOut * max_trainSet_rows];
+    float X_test[max_in_nn * max_trainSet_rows];
+    float Y_test[max_rows_orOut * max_trainSet_rows];
     int map_nn[max_am_layer];
     PyObject *inner_list;
     int tmp_rows = 0;
@@ -73,9 +75,9 @@ int main(int argc, char * argv[]) {
         create_C_map_nn(pVal, map_nn, map_size);
         initiate_pyRandom_module();
         initiate_layers(map_nn, map_size);
-        //----------настраиваем систему-----------------------------
-        fit(X, Y, tmp_rows, cols_train, cols_teach, eps, lr, debug);
-        //----------------------------------------------------------
+//        //----------настраиваем систему-----------------------------
+//        fit(X, Y, tmp_rows, cols_train, cols_teach, eps, lr, debug);
+//        //----------------------------------------------------------
         clear_random();
         printf("Cross validation\n");
         pVal = do_custum_func(pDict, "get_data_x_test", NULL);
@@ -83,14 +85,15 @@ int main(int argc, char * argv[]) {
         inner_list = get_list_item(pVal, 0);
         tmp_cols = get_list_size(inner_list);
         cols_train = tmp_cols;
-        make_matrix_from_pyobj(pVal, X, tmp_rows, cols_train);
+        make_matrix_from_pyobj(pVal, X_test, tmp_rows, cols_train);
         pVal = do_custum_func(pDict, "get_data_y_test", NULL);
         tmp_rows = get_list_size(pVal);
         inner_list = get_list_item(pVal, 0);
         tmp_cols = get_list_size(inner_list);
         cols_teach = tmp_cols;
-        make_matrix_from_pyobj(pVal, Y, tmp_rows, cols_teach);
-        cross_validation(X,Y,tmp_rows,cols_train,cols_teach);
+        make_matrix_from_pyobj(pVal, Y_test, tmp_rows, cols_teach);
+//        cross_validation(X,Y,tmp_rows,cols_train,cols_teach);
+        fit_viaCV(X,Y,X_test,Y_test,80,tmp_rows,cols_train,cols_teach,lr,debug);
         printf("plot\n");
         if (python_user_scriptDict("plot")) $
             puts("get user module error");

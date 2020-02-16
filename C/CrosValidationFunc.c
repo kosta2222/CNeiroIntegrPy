@@ -6,7 +6,7 @@ extern int debug;
 int check_2oneHotVecs(float *out_NN, float *vec_y_test, int vec_size);
 float calc_accur( int *scores, int rows);
 
-int cross_validation(float * X_test, float *Y_test, int rows, int cols_X_test, int cols_Y_test) {
+float cross_validation(float * X_test, float *Y_test, int rows, int cols_X_test, int cols_Y_test) {
     float tmp_vec_x_test[max_in_nn];
     float tmp_vec_y_test[max_rows_orOut];
     int scores[max_validSet_rows];
@@ -23,7 +23,10 @@ int cross_validation(float * X_test, float *Y_test, int rows, int cols_X_test, i
         index_row++;
     $$
     printf("Accuracy:%f%s\n",calc_accur(scores,rows),"%");
+/*
     _0_("cross_validation");
+*/
+    return res;
 }
 
 /*
@@ -33,8 +36,9 @@ int check_2oneHotVecs(float *out_NN, float *vec_y_test, int vec_size) {
     float tmp_elemOf_outNN_asHot = 0;
     for (int col = 0; col < vec_size; col++)$
         tmp_elemOf_outNN_asHot = (out_NN[col] > 0.5) ? 1 : 0;
-        if ((int )tmp_elemOf_outNN_asHot ==(int ) vec_y_test[col]) continue;
-           else return 0;
+        if ((int )tmp_elemOf_outNN_asHot ==(int ) vec_y_test[col])
+            continue;
+        else return 0;
         $$
     return 1;
 }
